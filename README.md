@@ -16,12 +16,9 @@ http://localhost:3000/api/devices - exposes the device state objects (JSON), inc
 # Installation
 
 1. Clone this repository, typically with `git clone <url>`
-2. Install meteor, meteorite and the needed packages
+2. Install meteor
 ```
-sudo apt-get install npm curl nodejs-legacy
 curl https://install.meteor.com/ | sh
-sudo -H npm install -g meteorite
-mrt add iron-router http-publish collection-api
 ```
 
 
