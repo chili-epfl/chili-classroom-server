@@ -6,9 +6,6 @@
 
 	<div id="topcenter">
 		<h1>Tessellated Battleship!</h1>
-
-  {{> hello}}
-
 	</div>
 
 	<div id="topleft">
@@ -27,16 +24,18 @@
 		<h1>Team 4 Stats</h1>
 	</div>
 
-	<div id="gameboard">Gameboard should go here</div>
+	<div id="gameboard"></div>
 
 	<div id="bottomcenter">
 		<h1>Virus Stats</h1>
-	</div>
 
+  {{> virus}}
+
+	</div>
 
 </body>
 
-<template name="hello">
-  <button>Click Me</button>
-  <p>You've pressed the button {{counter}} times.</p>
+<template name="virus">
+  <!--button>Click Me</button-->
+  <p>There are currently {{counter}} virus cells.</p>
 </template>
