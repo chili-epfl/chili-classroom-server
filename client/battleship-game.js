@@ -17,6 +17,9 @@ Template.virus.events({
 
 //This is the Phaser game object
 var game;
+var teamColorsString = ['#377eb8','#4daf4a','#ff7f00','#984ea3'];
+var teamColorsHex = [0x377eb8,0x4daf4a,0xff7f00,0x984ea3];
+
 
 //This represents the state of the (201x201) game board: 0-empty, 1-virus, -1/-4 team 1-4 polygons
 var board_state = [];
@@ -209,10 +212,16 @@ function nextState() {
 		turn++;
 		board_state = calculateVirusSpread(board_state, virulence, resistance, range);
 		drawBoardState(board_state);
+
+		//We plot the moves of the different teams so far. Later, this should be separated
+		drawTeamMoves(turn);
+		//TODO: calculate intersection with virus, kill them, assign points...
+
 	    Session.set('counter', num_virus_cells = countCells(board_state,States.VIRUS));
 		console.log("turn "+turn+" drawn");
 		num_free_cells = countCells(board_state,States.EMPTY);
 		if(num_free_cells < gameover_limit) gameOver();
+
 }
 
 function countCells(board, type){
@@ -235,4 +244,81 @@ function gameOver(){
     var text = game.add.text(game.world.centerX, game.world.centerY+50, 'Game over!', { font: '64px Arial', fill: '#300' , align: 'center'});
     text.anchor.set(0.5);
 
+}
+
+function drawTeamMoves(this_turn){
+
+	//TODO: Erase all polygons from last turn?
+
+	//We look for the collection of moves so far, for each team
+	for (var team = 1; team <= 4; team++ ){
+		var teamMoves = Moves.find({activity_id: 1, team: team, turn: { $lte: this_turn }}).fetch();	
+
+		console.log("Drawing team "+team+" moves. Found "+teamMoves.length);
+
+		for(var i = 0; i < teamMoves.length; i++){
+
+			drawMove(teamMoves[i], teamColorsHex[team], 0x000000);
+
+		}
+
+	}
+
+	console.log("Finished drawing moves!")
+}
+
+//Draws a team move (basically, a polygon, using the fill color and line color specified)
+function drawMove(move, fillcolor, linecolor){
+	//We calculate the origin of the polygon to draw (with the translation parameter)
+	var newOrigin = [(move.origin)[0]+(move.translation)[0],(move.origin)[1]+(move.translation)[1]];
+
+	var graphics = game.add.graphics();
+	graphics.beginFill(fillcolor);
+    graphics.lineStyle(1, linecolor, 1);
+
+	graphics.moveTo((transformCoordToWorld(newOrigin))[0],(transformCoordToWorld(newOrigin))[1]);
+
+    //Transform (rotate the polygon vertices)
+    var newPolygon = rotatePoints(move.polygon, move.rotation);
+
+     for (var i = 0; i < newPolygon.length; i++){
+     	var vertex = newPolygon[i];
+		 graphics.lineTo((transformCoordToWorld(vertex))[0], (transformCoordToWorld(vertex))[1]);
+    } 
+    //We return to the first vertex, to close the polygon
+    graphics.lineTo((transformCoordToWorld(newPolygon[0]))[0], (transformCoordToWorld(newPolygon[0]))[1]);
+    graphics.endFill();
+
+}
+
+//Transform from the game xy coordinates (-1...1,-1...1) (in a 2d array)
+// to pixels in the canvas (0...600,0...600) in another array - which starts in the top-left corner
+function transformCoordToWorld(coords){
+
+	var worldCoords = [0,0];
+
+	//Basic linear transformation
+	worldCoords[0] = Math.round((coords[0]+1)*300);
+	worldCoords[1] = Math.round(600-(coords[1]+1)*300);
+
+	return worldCoords;
+}
+
+
+//Rotates a set of xy points around the origin, for a number of degrees, clockwise
+function rotatePoints(arrayCoords, degrees){
+	var newArrayCoords = [];
+	for (var i = 0; i < arrayCoords.length; i++){
+		var vertex = arrayCoords[i];
+		//we transform the angle to negative, since the formulas suppose counterclockwise rotation
+		var newCoords = [(vertex[0] * Math.cos(toRadians(-degrees))) - (vertex[1] * Math.sin(toRadians(-degrees))),
+			(vertex[1] * Math.cos(toRadians(-degrees))) + (vertex[0] * Math.sin(toRadians(-degrees)))];
+		newArrayCoords.push(newCoords);
+	}
+
+	return newArrayCoords;
+}
+
+function toRadians (angle) {
+  return angle * (Math.PI / 180);
 }
