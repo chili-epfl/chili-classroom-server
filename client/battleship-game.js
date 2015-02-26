@@ -19,11 +19,14 @@ Template.virus.events({
 var game;
 var teamColorsString = ['#377eb8','#4daf4a','#ff7f00','#984ea3'];
 var teamColorsHex = [0x377eb8,0x4daf4a,0xff7f00,0x984ea3];
+var graphics; //Used to draw the polygons
+var viruses; //Used to store the virus sprites
+
 
 
 //This represents the state of the (201x201) game board: 0-empty, 1-virus, -1/-4 team 1-4 polygons
 var board_state = [];
-var States = {
+var CellStates = {
 	EMPTY : 0,
 	VIRUS : 1,
 	TEAM1 : -1,
@@ -52,14 +55,14 @@ var timer;
 var turn_delay = 3000; //time in ms. to advance to the next turn -- for debugging purposes only
 var num_virus_cells = 0;
 //Game is over when LESS than this amount of cells are empty
-var gameover_limit = 0.01*201*201;
+var gameover_limit = 0.01*board_dim_x*board_dim_y;
 
 //Creates the initial 201x201 board, empty (0)
 function initializeBoard(board){
 	for(var x = 0; x < board_dim_x; x++){
 	    board[x] = [];    
 	    for(var y = 0; y < board_dim_y; y++){ 
-	        board[x][y] = States.EMPTY;    
+	        board[x][y] = CellStates.EMPTY;    
 	    }    
 	}
 	return board;
@@ -69,7 +72,7 @@ function initializeBoard(board){
 function setBoardInitialState(board, pvirus){
 	for(var x = 0; x < board_dim_x; x++){
 	    for(var y = 0; y < board_dim_y; y++){ 
-	    	if(Math.random()<pvirus) board[x][y] = States.VIRUS;    
+	    	if(Math.random()<pvirus) board[x][y] = CellStates.VIRUS;    
 	    }    
 	}
 	return board;
@@ -94,21 +97,21 @@ function calculateVirusSpread(board, virulence, resistance, range){
 	    for(var y = 0; y < board_dim_y; y++){ 
     		var adjacent_cells = getAdjacentVirusCells(x, y, board, range);
 	    	
-	    	if((board[x][y] == States.EMPTY)||
-	    		(board[x][y] == States.TEAM1)||
-	    		(board[x][y] == States.TEAM2)||
-	    		(board[x][y] == States.TEAM3)||
-	    		(board[x][y] == States.TEAM4)){
+	    	if((board[x][y] == CellStates.EMPTY)||
+	    		(board[x][y] == CellStates.TEAM1)||
+	    		(board[x][y] == CellStates.TEAM2)||
+	    		(board[x][y] == CellStates.TEAM3)||
+	    		(board[x][y] == CellStates.TEAM4)){
 	    		
 	    		var prob = (adjacent_cells/max_adjacence)*virulence;//The probability of an empty cell being a virus is (proportion of adjacent virus cells)*virulence
-	    		if(Math.random()<prob) new_board[x][y] = States.VIRUS;
+	    		if(Math.random()<prob) new_board[x][y] = CellStates.VIRUS;
 	    		else new_board[x][y] = board[x][y];
 	    	}
 	    	//The probability of a virus cell dying away is (1-resistance)*(proportion of clean cells) 
 	    	// so for virulence 1 there is 50% chance that a lone virus cell will die away
-	    	else if(board[x][y] == States.VIRUS){
+	    	else if(board[x][y] == CellStates.VIRUS){
 	    		var prob = (1-resistance)*((max_adjacence-adjacent_cells)/max_adjacence);
-	    		if(Math.random()<prob) new_board[x][y] = States.EMPTY;
+	    		if(Math.random()<prob) new_board[x][y] = CellStates.EMPTY;
 	    		else new_board[x][y] = board[x][y];
 	    	}
 	    }    
@@ -137,7 +140,7 @@ function getAdjacentVirusCells(x, y, board, range){
 	for (var i=initiali;i<=finali;i++){
 		for(var j=initialj;j<=finalj;j++){
 			if(i!=0 || j!=0){//We do not count the cell itself
-				if(board[x+i][y+j]==States.VIRUS) adjacent_cells++;
+				if(board[x+i][y+j]==CellStates.VIRUS) adjacent_cells++;
 			}
 		}		
 	}
@@ -145,20 +148,17 @@ function getAdjacentVirusCells(x, y, board, range){
 }
 
 
-var viruses;
-
-
 
 
 function drawBoardState(board){
 
-	viruses.removeAll();
+	if (typeof viruses != 'undefined') viruses.removeAll();
 
 	for (var y = 0; y < board_dim_y; y++)
     {
         for (var x = 0; x < board_dim_x; x++)
         {
-        	if(board[x][y]==States.VIRUS){
+        	if(board[x][y]==CellStates.VIRUS){
 	            var virus = viruses.create(x * 3, y * 3, 'virus');
 	            virus.anchor.setTo(0.5, 0.5);
         	}
@@ -190,13 +190,13 @@ window.onload = function() {
 		viruses.enableBody = false;
 
         drawBoardState(board_state);
-   	    Session.set('counter', num_virus_cells = countCells(board_state,States.VIRUS));
+   	    Session.set('counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
 
         //  Create our Timer
 	    timer = game.time.create(false);
 
 	    //  Set a TimerEvent to occur after 3 seconds
-	    timer.loop(turn_delay, nextState, this);
+	    timer.loop(turn_delay, nextTurn, this);
 
 	    //  Start the timer running - this is important!
 	    //  It won't start automatically, allowing you to hook it to button events and the like.
@@ -207,7 +207,7 @@ window.onload = function() {
 
 };
 
-function nextState() {
+function nextTurn() {
 		console.log("Advancing from turn "+turn);
 		turn++;
 		board_state = calculateVirusSpread(board_state, virulence, resistance, range);
@@ -217,9 +217,9 @@ function nextState() {
 		drawTeamMoves(turn);
 		//TODO: calculate intersection with virus, kill them, assign points...
 
-	    Session.set('counter', num_virus_cells = countCells(board_state,States.VIRUS));
+	    Session.set('counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
 		console.log("turn "+turn+" drawn");
-		num_free_cells = countCells(board_state,States.EMPTY);
+		num_free_cells = countCells(board_state,CellStates.EMPTY);
 		if(num_free_cells < gameover_limit) gameOver();
 
 }
@@ -248,7 +248,10 @@ function gameOver(){
 
 function drawTeamMoves(this_turn){
 
-	//TODO: Erase all polygons from last turn?
+    //Erase all polygons from last turn
+    if (typeof graphics != 'undefined') graphics.clear(); 
+
+    graphics = game.add.graphics();
 
 	//We look for the collection of moves so far, for each team
 	for (var team = 1; team <= 4; team++ ){
@@ -258,8 +261,9 @@ function drawTeamMoves(this_turn){
 
 		for(var i = 0; i < teamMoves.length; i++){
 
-			drawMove(teamMoves[i], teamColorsHex[team], 0x000000);
-
+			drawMove(teamMoves[i], teamColorsHex[team-1], 0x000000);
+			//We only draw the origin of the move in the last one
+            if(i==teamMoves.length-1) drawOrigin(teamMoves[i], teamColorsHex[team-1], 0x000000);
 		}
 
 	}
@@ -267,27 +271,42 @@ function drawTeamMoves(this_turn){
 	console.log("Finished drawing moves!")
 }
 
+function drawOrigin(move, fillcolor, linecolor){
+    var radius_origin = 5;//radius in pixels of the origin marker
+    graphics.beginFill(fillcolor);
+    graphics.lineStyle(2, linecolor, 1);
+
+    //We calculate the origin of the polygon to draw (with the translation parameter), in game coordinates (-1,1)
+    var newOrigin = [(move.origin)[0]+(move.translation)[0],(move.origin)[1]+(move.translation)[1]];
+    //We paint a circle with the new origin point
+    graphics.drawCircle((transformCoordToWorld(newOrigin))[0],(transformCoordToWorld(newOrigin))[1], radius_origin);
+
+}
+
+
 //Draws a team move (basically, a polygon, using the fill color and line color specified)
 function drawMove(move, fillcolor, linecolor){
-	//We calculate the origin of the polygon to draw (with the translation parameter)
-	var newOrigin = [(move.origin)[0]+(move.translation)[0],(move.origin)[1]+(move.translation)[1]];
 
-	var graphics = game.add.graphics();
-	graphics.beginFill(fillcolor);
+
+    graphics.beginFill(fillcolor);
     graphics.lineStyle(1, linecolor, 1);
 
-	graphics.moveTo((transformCoordToWorld(newOrigin))[0],(transformCoordToWorld(newOrigin))[1]);
-
-    //Transform (rotate the polygon vertices)
+    //We calculate the origin of the polygon to draw (with the translation parameter), in game coordinates (-1,1)
+    var newOrigin = [(move.origin)[0]+(move.translation)[0],(move.origin)[1]+(move.translation)[1]];
+    //Transform (rotate the polygon vertices), still in game coordinates
     var newPolygon = rotatePoints(move.polygon, move.rotation);
 
-     for (var i = 0; i < newPolygon.length; i++){
-     	var vertex = newPolygon[i];
-		 graphics.lineTo((transformCoordToWorld(vertex))[0], (transformCoordToWorld(vertex))[1]);
+
+    //We draw the polygon
+    graphics.moveTo((transformCoordToWorld(newOrigin))[0],(transformCoordToWorld(newOrigin))[1]);
+    for (var i = 0; i < newPolygon.length; i++){
+        var vertex = newPolygon[i];//The vertex, rotated but centered on 0,0
+        graphics.lineTo((transformCoordToWorld(arraySum(vertex,newOrigin)))[0], (transformCoordToWorld(arraySum(vertex,newOrigin)))[1]);
     } 
     //We return to the first vertex, to close the polygon
-    graphics.lineTo((transformCoordToWorld(newPolygon[0]))[0], (transformCoordToWorld(newPolygon[0]))[1]);
+    graphics.lineTo((transformCoordToWorld(arraySum(newPolygon[0],newOrigin)))[0], (transformCoordToWorld(arraySum(newPolygon[0],newOrigin)))[1]);
     graphics.endFill();
+
 
 }
 
@@ -321,4 +340,15 @@ function rotatePoints(arrayCoords, degrees){
 
 function toRadians (angle) {
   return angle * (Math.PI / 180);
+}
+
+//Does a vector sum (component by component) of numeric arrays. 
+//The output is an array with the same dimension as the smallest of the two arrays
+function arraySum(array1 , array2){
+    var sum = [];
+    var dimension = Math.min(array1.length, array2.length);
+    for (var i = 0; i < dimension; i++){
+        sum.push(array1[i]+array2[i]);
+    }
+    return sum;
 }
