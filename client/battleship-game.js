@@ -19,9 +19,6 @@ Template.virus.events({
 var game;
 var teamColorsString = ['#377eb8','#4daf4a','#ff7f00','#984ea3'];
 var teamColorsHex = [0x377eb8,0x4daf4a,0xff7f00,0x984ea3];
-var graphics; //Used to draw the polygons
-var viruses; //Used to store the virus sprites
-var keyN; //The key to go to the next phase
 var game_active = false;
 
 
@@ -46,13 +43,12 @@ var board_dim_y = 201;
 //var resistance = 0.5;
 //var range = 1;
 // -- these values start small, double each turn and lead to complete invasion in 20 turns
-var initial_virus_prob = 0.003;
+var initial_virus_prob = 0.001;
 var virulence = 0.99;
 var resistance = 0.6;
 var range = 2;
 
 var turn = 0;
-var timer;
 var turn_delay = 3000; //time in ms. to advance to the next turn -- for debugging purposes only
 var num_virus_cells = 0;
 //Game is over when LESS than this amount of cells are empty
@@ -114,21 +110,21 @@ window.onload = function() {
 
 
 //Creates the initial 201x201 board, empty (0)
-function initializeBoard(board){
-	for(var x = 0; x < board_dim_x; x++){
+function initializeBoard(board, dimensionx, dimensiony, whatwith){
+	for(var x = 0; x < dimensionx; x++){
 	    board[x] = [];    
-	    for(var y = 0; y < board_dim_y; y++){ 
-	        board[x][y] = CellStates.EMPTY;    
+	    for(var y = 0; y < dimensiony; y++){ 
+	        board[x][y] = whatwith;    
 	    }    
 	}
 	return board;
 }
 
 //Sets the initial distribution of virus on the board, using a uniform random variable of probability pvirus
-function setBoardInitialState(board, pvirus){
-	for(var x = 0; x < board_dim_x; x++){
-	    for(var y = 0; y < board_dim_y; y++){ 
-	    	if(Math.random()<pvirus) board[x][y] = CellStates.VIRUS;    
+function setBoardInitialState(board, whatwith, prob){
+	for(var x = 0; x < board.length; x++){
+	    for(var y = 0; y < board[0].length; y++){ 
+	    	if(Math.random()<prob) board[x][y] = whatwith;    
 	    }    
 	}
 	return board;
@@ -139,7 +135,7 @@ function setBoardInitialState(board, pvirus){
 //and a virulence multiplier
 //The range parameter (by default, 1) determines how far do we look for virus cells to determine probability 
 //of a new virus cell (for now, only 1 or 2 are supported)
-function calculateVirusSpread(board, virulence, resistance, range){
+function calculateVirusSpread(board, virulence, resistance, range, neutral, spreading){
 
 	//The default range is 1, and we only support 2 as the other value
 	range = typeof range !== 'undefined' ? range : 1;
@@ -147,27 +143,22 @@ function calculateVirusSpread(board, virulence, resistance, range){
 	var max_adjacence = (Math.pow((range+2),2))-1;
 
 	var new_board = [];
-	new_board = initializeBoard(new_board);
+	new_board = initializeBoard(new_board, board_dim_x, board_dim_y, neutral);
 
-	for(var x = 0; x < board_dim_x; x++){
-	    for(var y = 0; y < board_dim_y; y++){ 
-    		var adjacent_cells = getAdjacentVirusCells(x, y, board, range);
+	for(var x = 0; x < board.length; x++){
+	    for(var y = 0; y < board[0].length; y++){ 
+    		var adjacent_cells = getAdjacentVirusCells(x, y, board, range, spreading);
 	    	
-	    	if((board[x][y] == CellStates.EMPTY)||
-	    		(board[x][y] == CellStates.TEAM1)||
-	    		(board[x][y] == CellStates.TEAM2)||
-	    		(board[x][y] == CellStates.TEAM3)||
-	    		(board[x][y] == CellStates.TEAM4)){
-	    		
-	    		var prob = (adjacent_cells/max_adjacence)*virulence;//The probability of an empty cell being a virus is (proportion of adjacent virus cells)*virulence
-	    		if(Math.random()<prob) new_board[x][y] = CellStates.VIRUS;
-	    		else new_board[x][y] = board[x][y];
-	    	}
 	    	//The probability of a virus cell dying away is (1-resistance)*(proportion of clean cells) 
 	    	// so for virulence 1 there is 50% chance that a lone virus cell will die away
-	    	else if(board[x][y] == CellStates.VIRUS){
+	    	if(board[x][y] == spreading){
 	    		var prob = (1-resistance)*((max_adjacence-adjacent_cells)/max_adjacence);
-	    		if(Math.random()<prob) new_board[x][y] = CellStates.EMPTY;
+	    		if(Math.random()<prob) new_board[x][y] = neutral;
+	    		else new_board[x][y] = board[x][y];
+	    	}else{
+	    		//The probability of an empty cell being a virus is (proportion of adjacent virus cells)*virulence
+	    		var prob = (adjacent_cells/max_adjacence)*virulence;
+	    		if(Math.random()<prob) new_board[x][y] = spreading;
 	    		else new_board[x][y] = board[x][y];
 	    	}
 	    }    
@@ -176,7 +167,7 @@ function calculateVirusSpread(board, virulence, resistance, range){
 }
 
 //Calculates how many cells adjacent to x,y are viruses, within a range of 1 or 2
-function getAdjacentVirusCells(x, y, board, range){
+function getAdjacentVirusCells(x, y, board, range, todetect){
 
 	var adjacent_cells = 0;
 	var initiali = -range;
@@ -196,7 +187,7 @@ function getAdjacentVirusCells(x, y, board, range){
 	for (var i=initiali;i<=finali;i++){
 		for(var j=initialj;j<=finalj;j++){
 			if(i!=0 || j!=0){//We do not count the cell itself
-				if(board[x+i][y+j]==CellStates.VIRUS) adjacent_cells++;
+				if(board[x+i][y+j]==todetect) adjacent_cells++;
 			}
 		}		
 	}
@@ -218,7 +209,9 @@ function darkenBoard(){
 
 function drawBoardState(board){
 
-	if (typeof viruses != 'undefined') viruses.removeAll();
+	//if (typeof viruses != 'undefined') viruses.removeAll();
+    var viruses = game.add.group();
+	viruses.enableBody = false;
 
 	for (var y = 0; y < board_dim_y; y++)
     {
@@ -235,22 +228,22 @@ function drawBoardState(board){
 }
 
 
-function nextTurn() {
-		console.log("Advancing from turn "+turn);
-		turn++;
-		board_state = calculateVirusSpread(board_state, virulence, resistance, range);
-		drawBoardState(board_state);
+// function nextTurn() {
+// 		console.log("Advancing from turn "+turn);
+// 		turn++;
+// 		board_state = calculateVirusSpread(board_state, virulence, resistance, range, CellStates.EMPTY, CellStates.VIRUS);
+// 		drawBoardState(board_state);
 
-		//We plot the moves of the different teams so far. Later, this should be separated
-		drawTeamMoves(turn);
-		//TODO: calculate intersection with virus, kill them, assign points...
+// 		//We plot the moves of the different teams so far. Later, this should be separated
+// 		drawTeamMoves(turn);
+// 		//TODO: calculate intersection with virus, kill them, assign points...
 
-	    Session.set('counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
-		console.log("turn "+turn+" drawn");
-		num_free_cells = countCells(board_state,CellStates.EMPTY);
-		if(num_free_cells < gameover_limit) gameOver();
+// 	    Session.set('counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
+// 		console.log("turn "+turn+" drawn");
+// 		num_free_cells = countCells(board_state,CellStates.EMPTY);
+// 		if(num_free_cells < gameover_limit) gameOver();
 
-}
+// }
 
 function countCells(board, type){
 	var counter=0;
@@ -264,22 +257,17 @@ function countCells(board, type){
     return counter;
 }
 
-function gameOver(){
+// function gameOver(){
 
-	timer.stop();
-    var baddie = game.add.sprite(game.world.centerX, game.world.centerY-50, 'virus-big');
-    baddie.anchor.setTo(0.5, 0.5);
-    var text = game.add.text(game.world.centerX, game.world.centerY+50, 'Game over!', { font: '64px Arial', fill: '#300' , align: 'center'});
-    text.anchor.set(0.5);
+// 	timer.stop();
+//     var baddie = game.add.sprite(game.world.centerX, game.world.centerY-50, 'virus-big');
+//     baddie.anchor.setTo(0.5, 0.5);
+//     var text = game.add.text(game.world.centerX, game.world.centerY+50, 'Game over!', { font: '64px Arial', fill: '#300' , align: 'center'});
+//     text.anchor.set(0.5);
 
-}
+// }
 
 function drawTeamMoves(this_turn){
-
-    //Erase all polygons from last turn
-    if (typeof graphics != 'undefined') graphics.clear(); 
-
-    graphics = game.add.graphics();
 
 	//We look for the collection of moves so far, for each team
 	for (var team = 1; team <= 4; team++ ){
@@ -301,6 +289,8 @@ function drawTeamMoves(this_turn){
 
 function drawOrigin(move, fillcolor, linecolor){
     var radius_origin = 5;//radius in pixels of the origin marker
+
+    var graphics = game.add.graphics();
     graphics.beginFill(fillcolor);
     graphics.lineStyle(2, linecolor, 1);
 
@@ -315,6 +305,7 @@ function drawOrigin(move, fillcolor, linecolor){
 //Draws a team move (basically, a polygon, using the fill color and line color specified)
 function drawMove(move, fillcolor, linecolor){
 
+    var graphics = game.add.graphics();
 
     graphics.beginFill(fillcolor);
     graphics.lineStyle(1, linecolor, 1);
@@ -428,7 +419,7 @@ BattleshipGame.MainMenu.prototype = {
 	    	{ font: '36px Arial', fill: '#300' , align: 'center'});
 	    text.anchor.set(0.5);
 
-	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+	    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startGame, this);
 
     }, 
@@ -485,28 +476,28 @@ BattleshipGame.GameNewTurn.prototype = {
 	 	//If it's a new game, initialization of the game board and other variables
 	 	if(!game_active){
 
-		    board_state = initializeBoard(board_state);
-		    board_state = setBoardInitialState(board_state, initial_virus_prob);
-
-		    viruses = this.add.group();
-			viruses.enableBody = false;
+		    board_state = initializeBoard(board_state, board_dim_x, board_dim_y, CellStates.EMPTY);
+		    board_state = setBoardInitialState(board_state, CellStates.VIRUS, initial_virus_prob);
 
 	 		game_active = true;
 	 	}else{//We calculate the virus spread
 
-			board_state = calculateVirusSpread(board_state, virulence, resistance, range);
+			board_state = calculateVirusSpread(board_state, virulence, resistance, range, CellStates.EMPTY, CellStates.VIRUS);
 
 	 	}
 
-
 	    drawBoardState(board_state);
+
+	    //We draw the moves for the last turn
+		drawTeamMoves(turn-1);
+
 	 	Session.set('counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
 
 		console.log("New turn "+turn+" drawn");
 
 		//We check the losing condition for game over
 		num_free_cells = countCells(board_state,CellStates.EMPTY);
-		if(num_free_cells < gameover_limit) gameOver();
+		if(num_free_cells < gameover_limit) this.gameOver();
 
 		//We paint the New turn message
 	    var text = this.add.text(this.world.centerX, this.world.centerY, 
@@ -515,7 +506,7 @@ BattleshipGame.GameNewTurn.prototype = {
 	    text.anchor.set(0.5);
 
 	 	//We add the key listener to pass to the next phase
-	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+	    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startAnalysis, this);
 
     }, 
@@ -573,12 +564,15 @@ BattleshipGame.GameAnalysis.prototype = {
 
 	    drawBoardState(board_state);
 
+	    //We draw the moves for the last turn
+		drawTeamMoves(turn-1);
+
 	    darkenBoard();
 		console.log("Analysis turn "+turn+" drawn");
 		//We paint the New turn message
 	    var text = this.add.text(this.world.centerX, this.world.centerY, 
 	    	'Turn '+turn+'\nAnalysis phase' , 
-	    	{ font: '36px Arial', fill: '#300' , align: 'center'});
+	    	{ font: '36px Arial', fill: '#000' , align: 'center'});
 	    text.anchor.set(0.5);
 
 	 	//We add the key listener to pass to the next phase
@@ -638,13 +632,17 @@ BattleshipGame.GameShoot.prototype = {
     create : function(){ 
 
 	    drawBoardState(board_state);
+
+   	    //We draw the moves for the last turn
+		drawTeamMoves(turn-1);
+
 	    darkenBoard();
 
 		console.log("Shooting turn "+turn+" drawn");
 		//We paint the New turn message
 	    var text = this.add.text(this.world.centerX, this.world.centerY, 
 	    	'Turn '+turn+'\nShooting phase' , 
-	    	{ font: '36px Arial', fill: '#300' , align: 'center'});
+	    	{ font: '36px Arial', fill: '#000' , align: 'center'});
 	    text.anchor.set(0.5);
 
 	 	//We add the key listener to pass to the next phase
