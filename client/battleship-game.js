@@ -21,7 +21,8 @@ var teamColorsString = ['#377eb8','#4daf4a','#ff7f00','#984ea3'];
 var teamColorsHex = [0x377eb8,0x4daf4a,0xff7f00,0x984ea3];
 var graphics; //Used to draw the polygons
 var viruses; //Used to store the virus sprites
-
+var keyN; //The key to go to the next phase
+var game_active = false;
 
 
 //This represents the state of the (201x201) game board: 0-empty, 1-virus, -1/-4 team 1-4 polygons
@@ -56,6 +57,61 @@ var turn_delay = 3000; //time in ms. to advance to the next turn -- for debuggin
 var num_virus_cells = 0;
 //Game is over when LESS than this amount of cells are empty
 var gameover_limit = 0.01*board_dim_x*board_dim_y;
+
+
+
+
+window.onload = function() {
+
+    //game = new Phaser.Game(600, 600, Phaser.AUTO, 'gameboard', { preload: preload, create: create }, true);
+    game = new Phaser.Game(600, 600, Phaser.AUTO, 'gameboard', null, true);
+
+    game.state.add('MainMenu',BattleshipGame.MainMenu);
+    game.state.add('GameNewTurn',BattleshipGame.GameNewTurn);
+    game.state.add('GameAnalysis',BattleshipGame.GameAnalysis);
+    game.state.add('GameShoot',BattleshipGame.GameShoot);
+    game.state.add('GameResolve',BattleshipGame.GameResolve);
+//    game.state.add('GameWin',BattleshipGame.GameWin);
+    game.state.add('GameOver',BattleshipGame.GameOver);
+
+    game.state.start('MainMenu');
+
+
+  //   function preload () {
+
+  //       game.load.image('virus', 'virus.png');
+  //       game.load.image('virus-big', 'virus-big.png');
+
+  //   }
+
+  //   function create () {
+
+  //       board_state = initializeBoard(board_state);
+  //       board_state = setBoardInitialState(board_state, initial_virus_prob);
+
+  //       viruses = game.add.group();
+		// viruses.enableBody = false;
+
+  //       drawBoardState(board_state);
+  //  	    Session.set('counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
+
+  //       //  Create our Timer
+	 //    timer = game.time.create(false);
+
+	 //    //  Set a TimerEvent to occur after 3 seconds
+	 //    timer.loop(turn_delay, nextTurn, this);
+
+	 //    //  Start the timer running - this is important!
+	 //    //  It won't start automatically, allowing you to hook it to button events and the like.
+	 //    timer.start();
+
+  //   }
+
+
+};
+
+
+
 
 //Creates the initial 201x201 board, empty (0)
 function initializeBoard(board){
@@ -149,6 +205,16 @@ function getAdjacentVirusCells(x, y, board, range){
 
 
 
+function darkenBoard(){
+
+    //if (typeof graphics != 'undefined') graphics.clear(); 
+    graphics = game.add.graphics();
+    graphics.beginFill(0x000000, 0.5);
+    graphics.lineStyle(1, 0x000000, 0);
+    graphics.drawRect(0,0,game.world.width, game.world.height);
+    graphics.endFill();
+}
+
 
 function drawBoardState(board){
 
@@ -168,44 +234,6 @@ function drawBoardState(board){
 
 }
 
-
-
-window.onload = function() {
-
-    game = new Phaser.Game(600, 600, Phaser.AUTO, 'gameboard', { preload: preload, create: create }, true);
-
-    function preload () {
-
-        game.load.image('virus', 'virus.png');
-        game.load.image('virus-big', 'virus-big.png');
-
-    }
-
-    function create () {
-
-        board_state = initializeBoard(board_state);
-        board_state = setBoardInitialState(board_state, initial_virus_prob);
-
-        viruses = game.add.group();
-		viruses.enableBody = false;
-
-        drawBoardState(board_state);
-   	    Session.set('counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
-
-        //  Create our Timer
-	    timer = game.time.create(false);
-
-	    //  Set a TimerEvent to occur after 3 seconds
-	    timer.loop(turn_delay, nextTurn, this);
-
-	    //  Start the timer running - this is important!
-	    //  It won't start automatically, allowing you to hook it to button events and the like.
-	    timer.start();
-
-    }
-
-
-};
 
 function nextTurn() {
 		console.log("Advancing from turn "+turn);
@@ -352,3 +380,355 @@ function arraySum(array1 , array2){
     }
     return sum;
 }
+
+
+//Battleship game states
+//TODO: Move to different files for legibility
+
+//Object that will hold all the game states
+BattleshipGame = {};
+
+//Main menu, when the game is started up and after each game
+BattleshipGame.MainMenu = function(){
+    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
+    this.game;      //  a reference to the currently running game (Phaser.Game)
+    this.add;       //  used to add sprites, text, groups, etc (Phaser.GameObjectFactory)
+    this.camera;    //  a reference to the game camera (Phaser.Camera)
+    this.cache;     //  the game cache (Phaser.Cache)
+    this.input;     //  the global input manager. You can access this.input.keyboard, this.input.mouse, as well from it. (Phaser.Input)
+    this.load;      //  for preloading assets (Phaser.Loader)
+    this.math;      //  lots of useful common math operations (Phaser.Math)
+    this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc (Phaser.SoundManager)
+    this.stage;     //  the game stage (Phaser.Stage)
+    this.time;      //  the clock (Phaser.Time)
+    this.tweens;    //  the tween manager (Phaser.TweenManager)
+    this.state;     //  the state manager (Phaser.StateManager)
+    this.world;     //  the game world (Phaser.World)
+    this.particles; //  the particle manager (Phaser.Particles)
+    this.physics;   //  the physics manager (Phaser.Physics)
+    this.rnd;       //  the repeatable random number generator (Phaser.RandomDataGenerator)
+
+    //  You can use any of these from any function within this State.
+    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
+
+	//Maybe add some variables relevant for this state
+}; 
+ 
+BattleshipGame.MainMenu.prototype = { 
+    preload : function(){ 
+        this.load.image('virus-big', 'virus-big.png');
+    }, 
+ 
+    create : function(){ 
+ 
+	    var baddie = this.add.sprite(this.world.centerX, this.world.centerY-50, 'virus-big');
+	    baddie.anchor.setTo(0.5, 0.5);
+	    var text = this.add.text(this.world.centerX, this.world.centerY+50, 
+	    	'Save the body from \nthe spreading virus!\nPress "N" to create a new game' , 
+	    	{ font: '36px Arial', fill: '#300' , align: 'center'});
+	    text.anchor.set(0.5);
+
+	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+    	keyN.onDown.add(this.startGame, this);
+
+    }, 
+ 
+    update : function(){ 
+ 
+	    // your game loop goes here 
+    }, 
+
+    startGame : function(){
+    	this.input.keyboard.clearCaptures();
+	    this.state.start('GameNewTurn');
+    }
+};
+
+
+
+//New turn, in which the virus spread is calculated and shown, 
+// and the game over is triggered if virus spread too far
+BattleshipGame.GameNewTurn = function(){
+    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
+    this.game;      //  a reference to the currently running game (Phaser.Game)
+    this.add;       //  used to add sprites, text, groups, etc (Phaser.GameObjectFactory)
+    this.camera;    //  a reference to the game camera (Phaser.Camera)
+    this.cache;     //  the game cache (Phaser.Cache)
+    this.input;     //  the global input manager. You can access this.input.keyboard, this.input.mouse, as well from it. (Phaser.Input)
+    this.load;      //  for preloading assets (Phaser.Loader)
+    this.math;      //  lots of useful common math operations (Phaser.Math)
+    this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc (Phaser.SoundManager)
+    this.stage;     //  the game stage (Phaser.Stage)
+    this.time;      //  the clock (Phaser.Time)
+    this.tweens;    //  the tween manager (Phaser.TweenManager)
+    this.state;     //  the state manager (Phaser.StateManager)
+    this.world;     //  the game world (Phaser.World)
+    this.particles; //  the particle manager (Phaser.Particles)
+    this.physics;   //  the physics manager (Phaser.Physics)
+    this.rnd;       //  the repeatable random number generator (Phaser.RandomDataGenerator)
+
+    //  You can use any of these from any function within this State.
+    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
+
+	//Maybe add some variables relevant for this state
+}; 
+ 
+BattleshipGame.GameNewTurn.prototype = { 
+    preload : function(){ 
+         this.load.image('virus', 'virus.png');
+    }, 
+ 
+    create : function(){ 
+
+	 	turn++;
+ 
+	 	//If it's a new game, initialization of the game board and other variables
+	 	if(!game_active){
+
+		    board_state = initializeBoard(board_state);
+		    board_state = setBoardInitialState(board_state, initial_virus_prob);
+
+		    viruses = this.add.group();
+			viruses.enableBody = false;
+
+	 		game_active = true;
+	 	}else{//We calculate the virus spread
+
+			board_state = calculateVirusSpread(board_state, virulence, resistance, range);
+
+	 	}
+
+
+	    drawBoardState(board_state);
+	 	Session.set('counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
+
+		console.log("New turn "+turn+" drawn");
+
+		//We check the losing condition for game over
+		num_free_cells = countCells(board_state,CellStates.EMPTY);
+		if(num_free_cells < gameover_limit) gameOver();
+
+		//We paint the New turn message
+	    var text = this.add.text(this.world.centerX, this.world.centerY, 
+	    	'Turn '+turn , 
+	    	{ font: '36px Arial', fill: '#300' , align: 'center'});
+	    text.anchor.set(0.5);
+
+	 	//We add the key listener to pass to the next phase
+	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+    	keyN.onDown.add(this.startAnalysis, this);
+
+    }, 
+ 
+    update : function(){ 
+ 
+	    // your game loop goes here 
+    }, 
+
+    startAnalysis : function(){
+    	this.input.keyboard.clearCaptures();
+	    this.state.start('GameAnalysis');
+    },
+
+    gameOver : function(){
+    	this.input.keyboard.clearCaptures();
+    	this.state.start('GameOver');
+    }
+};
+
+
+
+//Analysis phase, in which the board is darkened and students have time to calculate their next move
+BattleshipGame.GameAnalysis = function(){
+    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
+    this.game;      //  a reference to the currently running game (Phaser.Game)
+    this.add;       //  used to add sprites, text, groups, etc (Phaser.GameObjectFactory)
+    this.camera;    //  a reference to the game camera (Phaser.Camera)
+    this.cache;     //  the game cache (Phaser.Cache)
+    this.input;     //  the global input manager. You can access this.input.keyboard, this.input.mouse, as well from it. (Phaser.Input)
+    this.load;      //  for preloading assets (Phaser.Loader)
+    this.math;      //  lots of useful common math operations (Phaser.Math)
+    this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc (Phaser.SoundManager)
+    this.stage;     //  the game stage (Phaser.Stage)
+    this.time;      //  the clock (Phaser.Time)
+    this.tweens;    //  the tween manager (Phaser.TweenManager)
+    this.state;     //  the state manager (Phaser.StateManager)
+    this.world;     //  the game world (Phaser.World)
+    this.particles; //  the particle manager (Phaser.Particles)
+    this.physics;   //  the physics manager (Phaser.Physics)
+    this.rnd;       //  the repeatable random number generator (Phaser.RandomDataGenerator)
+
+    //  You can use any of these from any function within this State.
+    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
+
+	//Maybe add some variables relevant for this state
+}; 
+ 
+BattleshipGame.GameAnalysis.prototype = { 
+    preload : function(){ 
+
+    }, 
+ 
+    create : function(){ 
+
+	    drawBoardState(board_state);
+
+	    darkenBoard();
+		console.log("Analysis turn "+turn+" drawn");
+		//We paint the New turn message
+	    var text = this.add.text(this.world.centerX, this.world.centerY, 
+	    	'Turn '+turn+'\nAnalysis phase' , 
+	    	{ font: '36px Arial', fill: '#300' , align: 'center'});
+	    text.anchor.set(0.5);
+
+	 	//We add the key listener to pass to the next phase
+	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+    	keyN.onDown.add(this.startShoot, this);
+
+    }, 
+ 
+    update : function(){ 
+ 
+	    // your game loop goes here 
+    }, 
+
+    startShoot : function(){
+    	this.input.keyboard.clearCaptures();
+	    this.state.start('GameShoot');
+    },
+
+};
+
+
+
+
+
+//Shooting phase, in which the teams execute the rotation/translation
+// (probably, refreshing it in realtime in the team stats?)
+BattleshipGame.GameShoot = function(){
+    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
+    this.game;      //  a reference to the currently running game (Phaser.Game)
+    this.add;       //  used to add sprites, text, groups, etc (Phaser.GameObjectFactory)
+    this.camera;    //  a reference to the game camera (Phaser.Camera)
+    this.cache;     //  the game cache (Phaser.Cache)
+    this.input;     //  the global input manager. You can access this.input.keyboard, this.input.mouse, as well from it. (Phaser.Input)
+    this.load;      //  for preloading assets (Phaser.Loader)
+    this.math;      //  lots of useful common math operations (Phaser.Math)
+    this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc (Phaser.SoundManager)
+    this.stage;     //  the game stage (Phaser.Stage)
+    this.time;      //  the clock (Phaser.Time)
+    this.tweens;    //  the tween manager (Phaser.TweenManager)
+    this.state;     //  the state manager (Phaser.StateManager)
+    this.world;     //  the game world (Phaser.World)
+    this.particles; //  the particle manager (Phaser.Particles)
+    this.physics;   //  the physics manager (Phaser.Physics)
+    this.rnd;       //  the repeatable random number generator (Phaser.RandomDataGenerator)
+
+    //  You can use any of these from any function within this State.
+    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
+
+	//Maybe add some variables relevant for this state
+}; 
+ 
+BattleshipGame.GameShoot.prototype = { 
+    preload : function(){ 
+
+    }, 
+ 
+    create : function(){ 
+
+	    drawBoardState(board_state);
+	    darkenBoard();
+
+		console.log("Shooting turn "+turn+" drawn");
+		//We paint the New turn message
+	    var text = this.add.text(this.world.centerX, this.world.centerY, 
+	    	'Turn '+turn+'\nShooting phase' , 
+	    	{ font: '36px Arial', fill: '#300' , align: 'center'});
+	    text.anchor.set(0.5);
+
+	 	//We add the key listener to pass to the next phase
+	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+    	keyN.onDown.add(this.startResolve, this);
+
+    }, 
+ 
+    update : function(){ 
+ 
+	    // your game loop goes here 
+    }, 
+
+    startResolve : function(){
+    	this.input.keyboard.clearCaptures();
+	    this.state.start('GameResolve');
+    },
+
+};
+
+
+
+
+
+//Shoot resolution phase, in which the shoots are displayed, 
+// and resulting viruses killed and points calculated
+BattleshipGame.GameResolve = function(){
+    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
+    this.game;      //  a reference to the currently running game (Phaser.Game)
+    this.add;       //  used to add sprites, text, groups, etc (Phaser.GameObjectFactory)
+    this.camera;    //  a reference to the game camera (Phaser.Camera)
+    this.cache;     //  the game cache (Phaser.Cache)
+    this.input;     //  the global input manager. You can access this.input.keyboard, this.input.mouse, as well from it. (Phaser.Input)
+    this.load;      //  for preloading assets (Phaser.Loader)
+    this.math;      //  lots of useful common math operations (Phaser.Math)
+    this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc (Phaser.SoundManager)
+    this.stage;     //  the game stage (Phaser.Stage)
+    this.time;      //  the clock (Phaser.Time)
+    this.tweens;    //  the tween manager (Phaser.TweenManager)
+    this.state;     //  the state manager (Phaser.StateManager)
+    this.world;     //  the game world (Phaser.World)
+    this.particles; //  the particle manager (Phaser.Particles)
+    this.physics;   //  the physics manager (Phaser.Physics)
+    this.rnd;       //  the repeatable random number generator (Phaser.RandomDataGenerator)
+
+    //  You can use any of these from any function within this State.
+    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
+
+	//Maybe add some variables relevant for this state
+}; 
+ 
+BattleshipGame.GameResolve.prototype = { 
+    preload : function(){ 
+
+    }, 
+ 
+    create : function(){ 
+	    drawBoardState(board_state);
+
+    	//We get the moves from the database, and paint them
+		drawTeamMoves(turn);
+
+		//TODO: check for the collisions with polygons, and kill the viruses and add points
+
+		console.log("Resolve turn "+turn+" drawn");
+
+		//TODO: check for the winning conditions
+
+	 	//We add the key listener to pass to the next phase
+	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+    	keyN.onDown.add(this.startNext, this);
+
+    }, 
+ 
+    update : function(){ 
+ 
+	    // your game loop goes here 
+    }, 
+
+    startNext : function(){
+    	this.input.keyboard.clearCaptures();
+	    this.state.start('GameNewTurn');
+    },
+
+};
+
+ 
