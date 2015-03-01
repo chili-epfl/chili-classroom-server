@@ -20,7 +20,7 @@ var game;
 var teamColorsString = ['#377eb8','#4daf4a','#ff7f00','#984ea3'];
 var teamColorsHex = [0x377eb8,0x4daf4a,0xff7f00,0x984ea3];
 var game_active = false;
-
+var activity_server_id = null;
 
 //This represents the state of the (201x201) game board: 0-empty, 1-virus, -1/-4 team 1-4 polygons
 var board_state = [];
@@ -35,6 +35,8 @@ var CellStates = {
 var board_dim_x = 201;
 var board_dim_y = 201;
 
+
+
 //Initial virus board 
 
 // -- these values seem to lead to stable virus
@@ -45,7 +47,7 @@ var board_dim_y = 201;
 // -- these values start small, double each turn and lead to complete invasion in 20 turns
 var initial_virus_prob = 0.001;
 var virulence = 0.99;
-var resistance = 0.6;
+var resistance = 0.7;
 var range = 2;
 
 var turn = 0;
@@ -53,6 +55,7 @@ var turn_delay = 3000; //time in ms. to advance to the next turn -- for debuggin
 var num_virus_cells = 0;
 //Game is over when LESS than this amount of cells are empty
 var gameover_limit = 0.01*board_dim_x*board_dim_y;
+var winning_limit = 0;
 
 
 
@@ -67,7 +70,7 @@ window.onload = function() {
     game.state.add('GameAnalysis',BattleshipGame.GameAnalysis);
     game.state.add('GameShoot',BattleshipGame.GameShoot);
     game.state.add('GameResolve',BattleshipGame.GameResolve);
-//    game.state.add('GameWin',BattleshipGame.GameWin);
+    game.state.add('GameWin',BattleshipGame.GameWin);
     game.state.add('GameOver',BattleshipGame.GameOver);
 
     game.state.start('MainMenu');
@@ -213,6 +216,9 @@ function drawBoardState(board){
     var viruses = game.add.group();
 	viruses.enableBody = false;
 
+    var colors = game.add.graphics();
+    colors.lineStyle(0, 0x000000, 0);//transparent borders
+
 	for (var y = 0; y < board_dim_y; y++)
     {
         for (var x = 0; x < board_dim_x; x++)
@@ -220,9 +226,22 @@ function drawBoardState(board){
         	if(board[x][y]==CellStates.VIRUS){
 	            var virus = viruses.create(x * 3, y * 3, 'virus');
 	            virus.anchor.setTo(0.5, 0.5);
-        	}
+        	}else if(board[x][y]==CellStates.TEAM1){
+                colors.beginFill(teamColorsHex[0]);
+                colors.drawRect((x * 3)-2, (y * 3)-2, 4, 4);//TODO: For now the squares are side=4, although should be 3? this is to have them be centered
+            }else if(board[x][y]==CellStates.TEAM2){
+                colors.beginFill(teamColorsHex[1]);
+                colors.drawRect((x * 3)-2, (y * 3)-2, 4, 4);//TODO: For now the squares are side=4, although should be 3? this is to have them be centered
+            }else if(board[x][y]==CellStates.TEAM3){
+                colors.beginFill(teamColorsHex[2]);
+                colors.drawRect((x * 3)-2, (y * 3)-2, 4, 4);//TODO: For now the squares are side=4, although should be 3? this is to have them be centered
+            }else if(board[x][y]==CellStates.TEAM4){
+                colors.beginFill(teamColorsHex[3]);
+                colors.drawRect((x * 3)-2, (y * 3)-2, 4, 4);//TODO: For now the squares are side=4, although should be 3? this is to have them be centered
+            }
         }
     }
+    colors.endFill();
 
 
 }
@@ -422,6 +441,9 @@ BattleshipGame.MainMenu.prototype = {
 	    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startGame, this);
 
+
+
+
     }, 
  
     update : function(){ 
@@ -471,6 +493,10 @@ BattleshipGame.GameNewTurn.prototype = {
  
     create : function(){ 
 
+        //We get the activity state from the classroom server
+        activity_server_id = ((Activities.find({ id : 1 }).fetch())[0])._id;
+
+
 	 	turn++;
  
 	 	//If it's a new game, initialization of the game board and other variables
@@ -492,6 +518,8 @@ BattleshipGame.GameNewTurn.prototype = {
 		drawTeamMoves(turn-1);
 
 	 	Session.set('counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
+        //If this is the first turn, we set the winning condition, e.g. to half of the initial viruses
+        if(turn == 1) winning_limit = Math.floor(num_virus_cells/2);
 
 		console.log("New turn "+turn+" drawn");
 
@@ -508,6 +536,23 @@ BattleshipGame.GameNewTurn.prototype = {
 	 	//We add the key listener to pass to the next phase
 	    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startAnalysis, this);
+
+        //We update the activity server with the current state
+        Activities.update(activity_server_id, {$set: {
+                                        type: 'battleship-collab',
+                                        current_state: {
+                                            active: true,
+                                            turn: turn,
+                                            phase: this.state.current,
+                                            board: board_state,
+                                            num_virus_cells: num_virus_cells,
+                                            team1_points: 0,//TODO
+                                            team2_points: 0,//TODO
+                                            team3_points: 0,//TODO
+                                            team4_points: 0//TODO         
+                                            }
+                                        }
+                                    });
 
     }, 
  
@@ -557,7 +602,7 @@ BattleshipGame.GameAnalysis = function(){
  
 BattleshipGame.GameAnalysis.prototype = { 
     preload : function(){ 
-
+         this.load.image('virus', 'virus.png');
     }, 
  
     create : function(){ 
@@ -578,6 +623,24 @@ BattleshipGame.GameAnalysis.prototype = {
 	 	//We add the key listener to pass to the next phase
 	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startShoot, this);
+
+        //We update the activity server with the current state
+        Activities.update(activity_server_id, {$set: {
+                                        type: 'battleship-collab',
+                                        current_state: {
+                                            active: true,
+                                            turn: turn,
+                                            phase: this.state.current,
+                                            board: board_state,
+                                            num_virus_cells: num_virus_cells,
+                                            team1_points: 0,//TODO
+                                            team2_points: 0,//TODO
+                                            team3_points: 0,//TODO
+                                            team4_points: 0//TODO         
+                                            }
+                                        }
+                                    });
+
 
     }, 
  
@@ -626,7 +689,7 @@ BattleshipGame.GameShoot = function(){
  
 BattleshipGame.GameShoot.prototype = { 
     preload : function(){ 
-
+         this.load.image('virus', 'virus.png');
     }, 
  
     create : function(){ 
@@ -648,6 +711,25 @@ BattleshipGame.GameShoot.prototype = {
 	 	//We add the key listener to pass to the next phase
 	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startResolve, this);
+
+
+        //We update the activity server with the current state
+        Activities.update(activity_server_id, {$set: {
+                                        type: 'battleship-collab',
+                                        current_state: {
+                                            active: true,
+                                            turn: turn,
+                                            phase: this.state.current,
+                                            board: board_state,
+                                            num_virus_cells: num_virus_cells,
+                                            team1_points: 0,//TODO
+                                            team2_points: 0,//TODO
+                                            team3_points: 0,//TODO
+                                            team4_points: 0//TODO         
+                                            }
+                                        }
+                                    });
+
 
     }, 
  
@@ -696,24 +778,43 @@ BattleshipGame.GameResolve = function(){
  
 BattleshipGame.GameResolve.prototype = { 
     preload : function(){ 
-
+         this.load.image('virus', 'virus.png');
     }, 
  
     create : function(){ 
-	    drawBoardState(board_state);
-
     	//We get the moves from the database, and paint them
-		drawTeamMoves(turn);
-
 		//TODO: check for the collisions with polygons, and kill the viruses and add points
+
+        drawBoardState(board_state);
+        //TODO: make that only the latest move is actually displayed (the rest should come from board state)
+        drawTeamMoves(turn);
 
 		console.log("Resolve turn "+turn+" drawn");
 
-		//TODO: check for the winning conditions
+        num_virus_cells = countCells()
+		if(Session.get('counter') < winning_limit) this.startWin();
 
 	 	//We add the key listener to pass to the next phase
 	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startNext, this);
+
+        //We update the activity server with the current state
+        Activities.update(activity_server_id, {$set: {
+                                        type: 'battleship-collab',
+                                        current_state: {
+                                            active: true,
+                                            turn: turn,
+                                            phase: this.state.current,
+                                            board: board_state,
+                                            num_virus_cells: num_virus_cells,
+                                            team1_points: 0,//TODO
+                                            team2_points: 0,//TODO
+                                            team3_points: 0,//TODO
+                                            team4_points: 0//TODO         
+                                            }
+                                        }
+                                    });
+
 
     }, 
  
@@ -727,6 +828,182 @@ BattleshipGame.GameResolve.prototype = {
 	    this.state.start('GameNewTurn');
     },
 
+    startWin : function(){
+        this.input.keyboard.clearCaptures();
+        this.state.start('GameWin');
+    }
+
 };
 
  
+
+
+
+//Game over phase, just shows a baddie and some text, 
+// and resulting viruses killed and points calculated
+BattleshipGame.GameOver = function(){
+    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
+    this.game;      //  a reference to the currently running game (Phaser.Game)
+    this.add;       //  used to add sprites, text, groups, etc (Phaser.GameObjectFactory)
+    this.camera;    //  a reference to the game camera (Phaser.Camera)
+    this.cache;     //  the game cache (Phaser.Cache)
+    this.input;     //  the global input manager. You can access this.input.keyboard, this.input.mouse, as well from it. (Phaser.Input)
+    this.load;      //  for preloading assets (Phaser.Loader)
+    this.math;      //  lots of useful common math operations (Phaser.Math)
+    this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc (Phaser.SoundManager)
+    this.stage;     //  the game stage (Phaser.Stage)
+    this.time;      //  the clock (Phaser.Time)
+    this.tweens;    //  the tween manager (Phaser.TweenManager)
+    this.state;     //  the state manager (Phaser.StateManager)
+    this.world;     //  the game world (Phaser.World)
+    this.particles; //  the particle manager (Phaser.Particles)
+    this.physics;   //  the physics manager (Phaser.Physics)
+    this.rnd;       //  the repeatable random number generator (Phaser.RandomDataGenerator)
+
+    //  You can use any of these from any function within this State.
+    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
+
+    //Maybe add some variables relevant for this state
+}; 
+ 
+BattleshipGame.GameOver.prototype = { 
+    preload : function(){ 
+        this.load.image('virus-big', 'virus-big.png');
+         this.load.image('virus', 'virus.png');
+    }, 
+ 
+    create : function(){ 
+        drawBoardState(board_state);
+
+        //We get the moves from the database, and paint them
+        drawTeamMoves(turn);
+
+         var baddie = game.add.sprite(game.world.centerX, game.world.centerY-50, 'virus-big');
+         baddie.anchor.setTo(0.5, 0.5);
+         var text = game.add.text(game.world.centerX, game.world.centerY+50, 'Game over!', { font: '64px Arial', fill: '#300' , align: 'center'});
+         text.anchor.set(0.5);
+
+        console.log("Game Over turn "+turn+" drawn");
+
+        //We add the key listener to pass to the next phase
+        keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+        keyN.onDown.add(this.startMenu, this);
+
+        //We update the activity server with the current state
+        Activities.update(activity_server_id, {$set: {
+                                        type: 'battleship-collab',
+                                        current_state: {
+                                            active: false,
+                                            turn: turn,
+                                            phase: this.state.current,
+                                            board: board_state,
+                                            num_virus_cells: num_virus_cells,
+                                            team1_points: 0,//TODO
+                                            team2_points: 0,//TODO
+                                            team3_points: 0,//TODO
+                                            team4_points: 0//TODO         
+                                            }
+                                        }
+                                    });
+
+
+    }, 
+ 
+    update : function(){ 
+ 
+        // your game loop goes here 
+    }, 
+
+    startMenu : function(){
+        this.input.keyboard.clearCaptures();
+        this.state.start('MainMenu');
+    },
+
+};
+
+
+
+//Game win phase, just shows a baddie crossed out and some text, 
+// and resulting viruses killed and points calculated
+BattleshipGame.GameWin = function(){
+    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
+    this.game;      //  a reference to the currently running game (Phaser.Game)
+    this.add;       //  used to add sprites, text, groups, etc (Phaser.GameObjectFactory)
+    this.camera;    //  a reference to the game camera (Phaser.Camera)
+    this.cache;     //  the game cache (Phaser.Cache)
+    this.input;     //  the global input manager. You can access this.input.keyboard, this.input.mouse, as well from it. (Phaser.Input)
+    this.load;      //  for preloading assets (Phaser.Loader)
+    this.math;      //  lots of useful common math operations (Phaser.Math)
+    this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc (Phaser.SoundManager)
+    this.stage;     //  the game stage (Phaser.Stage)
+    this.time;      //  the clock (Phaser.Time)
+    this.tweens;    //  the tween manager (Phaser.TweenManager)
+    this.state;     //  the state manager (Phaser.StateManager)
+    this.world;     //  the game world (Phaser.World)
+    this.particles; //  the particle manager (Phaser.Particles)
+    this.physics;   //  the physics manager (Phaser.Physics)
+    this.rnd;       //  the repeatable random number generator (Phaser.RandomDataGenerator)
+
+    //  You can use any of these from any function within this State.
+    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
+
+    //Maybe add some variables relevant for this state
+}; 
+ 
+BattleshipGame.GameWin.prototype = { 
+    preload : function(){ 
+        this.load.image('virus-big', 'virus-big.png');
+         this.load.image('virus', 'virus.png');
+    }, 
+ 
+    create : function(){ 
+        drawBoardState(board_state);
+
+        //We get the moves from the database, and paint them
+        drawTeamMoves(turn);
+
+         var baddie = game.add.sprite(game.world.centerX, game.world.centerY-50, 'virus-big');
+         baddie.anchor.setTo(0.5, 0.5);
+         var cross = game.add.text(game.world.centerX, game.world.centerY-50, 'X', { font: '120px Arial', fill: '#300' , align: 'center'});
+         cross.anchor.set(0.5);
+         var text = game.add.text(game.world.centerX, game.world.centerY+50, 'Well done!\nThe virus has been contained!\nPress "N" to go back home', { font: '64px Arial', fill: '#300' , align: 'center'});
+         text.anchor.set(0.5);
+
+        console.log("Game Win turn "+turn+" drawn");
+
+        //We add the key listener to pass to the next phase
+        keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+        keyN.onDown.add(this.startMenu, this);
+
+        //We update the activity server with the current state
+        Activities.update(activity_server_id, {$set: {
+                                        type: 'battleship-collab',
+                                        current_state: {
+                                            active: false,
+                                            turn: turn,
+                                            phase: this.state.current,
+                                            board: board_state,
+                                            num_virus_cells: num_virus_cells,
+                                            team1_points: 0,//TODO
+                                            team2_points: 0,//TODO
+                                            team3_points: 0,//TODO
+                                            team4_points: 0//TODO         
+                                            }
+                                        }
+                                    });
+
+
+    }, 
+ 
+    update : function(){ 
+ 
+        // your game loop goes here 
+    }, 
+
+    startMenu : function(){
+        this.input.keyboard.clearCaptures();
+        this.state.start('MainMenu');
+    },
+
+};
+

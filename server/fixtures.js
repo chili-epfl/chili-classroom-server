@@ -8,6 +8,7 @@ if (Activities.find().count()===0){
 		current_state: {
 			active: false,
 			turn: 0,
+			phase: null,
 			board: [],
 			num_virus_cells: 0,
 			team1_points: 0,
