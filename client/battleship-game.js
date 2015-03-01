@@ -4,6 +4,16 @@ Session.setDefault('virus_counter', 0);
 Session.setDefault('proportion_counter', 0);
 
 Template.virus.helpers({
+  showBlock: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        //We only hide the block in the main menu phase
+        if(typeof activity_server === 'undefined') return false;
+        if(activity_server.current_state.phase=='MainMenu' || activity_server.current_state.phase==null) return false;
+        else return true;
+  }
+});
+
+Template.virus.helpers({
   counter: function () {
     return Session.get('virus_counter');
   }
@@ -15,12 +25,198 @@ Template.virus.helpers({
   }
 });
 
+//Helpers of the team 1 data
+Template.team1.helpers({
+  showBlock: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        //We only hide the block in the main menu phase
+        if(typeof activity_server === 'undefined') return false;
+        if(activity_server.current_state.phase=='MainMenu' || activity_server.current_state.phase==null) return false;
+        else return true;
+  }
+});
+
+
+Template.team1.helpers({
+    team1_points: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+         if(typeof activity_server === 'undefined') return 0;
+       return activity_server.current_state.team1_points;
+    }
+});
+
+Template.team1.helpers({
+    translation: function () {
+        var move = (Moves.find({activity_id: 1, team: 1, turn: turn }).fetch())[0];
+        if(typeof move === 'undefined') return [0,0];
+        return move.translation;
+    }
+});
+
+Template.team1.helpers({
+    rotation: function () {
+        var move = (Moves.find({activity_id: 1, team: 1, turn: turn }).fetch())[0];
+        if(typeof move === 'undefined') return 0;
+        return move.rotation;
+    }
+});
+
+Template.team1.helpers({
+    showMove: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        //We only show the moves in the shooting and resolving phases
+        if(typeof activity_server === 'undefined') return false;
+        if((activity_server.current_state.phase=='GameShoot')||(activity_server.current_state.phase=='GameResolve')) return true;
+        else return false;
+    }
+});
+
+//Helpers of the team 2 data
+Template.team2.helpers({
+  showBlock: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        //We only hide the block in the main menu phase
+        if(typeof activity_server === 'undefined') return false;
+        if(activity_server.current_state.phase=='MainMenu' || activity_server.current_state.phase==null) return false;
+        else return true;
+  }
+});
+
+Template.team2.helpers({
+    team2_points: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        if(typeof activity_server === 'undefined') return 0;
+        return activity_server.current_state.team2_points;
+    }
+});
+
+Template.team2.helpers({
+    translation: function () {
+        var move = (Moves.find({activity_id: 1, team: 2, turn: turn }).fetch())[0];
+        if(typeof move === 'undefined') return [0,0];
+        return move.translation;
+    }
+});
+
+Template.team2.helpers({
+    rotation: function () {
+        var move = (Moves.find({activity_id: 1, team: 2, turn: turn }).fetch())[0];
+        if(typeof move === 'undefined') return 0;
+        return move.rotation;
+    }
+});
+
+Template.team2.helpers({
+    showMove: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        //We only show the moves in the shooting and resolving phases
+        if(typeof activity_server === 'undefined') return false;
+        if((activity_server.current_state.phase=='GameShoot')||(activity_server.current_state.phase=='GameResolve')) return true;
+        else return false;
+    }
+});
+
+
+//Helpers of the team 3 data
+Template.team3.helpers({
+  showBlock: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        //We only hide the block in the main menu phase
+        if(typeof activity_server === 'undefined') return false;
+        if(activity_server.current_state.phase=='MainMenu' || activity_server.current_state.phase==null) return false;
+        else return true;
+  }
+});
+
+Template.team3.helpers({
+    team3_points: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        if(typeof activity_server === 'undefined') return 0;
+        return activity_server.current_state.team3_points;
+    }
+});
+
+Template.team3.helpers({
+    translation: function () {
+        var move = (Moves.find({activity_id: 1, team: 3, turn: turn }).fetch())[0];
+        if(typeof move === 'undefined') return [0,0];
+        return move.translation;
+    }
+});
+
+Template.team3.helpers({
+    rotation: function () {
+        var move = (Moves.find({activity_id: 1, team: 3, turn: turn }).fetch())[0];
+        if(typeof move === 'undefined') return 0;
+        return move.rotation;
+    }
+});
+
+Template.team3.helpers({
+    showMove: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        //We only show the moves in the shooting and resolving phases
+        if(typeof activity_server === 'undefined') return false;
+        if((activity_server.current_state.phase=='GameShoot')||(activity_server.current_state.phase=='GameResolve')) return true;
+        else return false;
+    }
+});
+
+
+//Helpers of the team 4 data
+Template.team4.helpers({
+  showBlock: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        //We only hide the block in the main menu phase
+        if(typeof activity_server === 'undefined') return false;
+        if(activity_server.current_state.phase=='MainMenu' || activity_server.current_state.phase==null) return false;
+        else return true;
+  }
+});
+
+Template.team4.helpers({
+    team4_points: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        if(typeof activity_server === 'undefined') return 0;
+        return activity_server.current_state.team4_points;
+    }
+});
+
+Template.team4.helpers({
+    translation: function () {
+        var move = (Moves.find({activity_id: 1, team: 4, turn: turn }).fetch())[0];
+        if(typeof move === 'undefined') return [0,0];
+        return move.translation;
+    }
+});
+
+Template.team4.helpers({
+    rotation: function () {
+        var move = (Moves.find({activity_id: 1, team: 4, turn: turn }).fetch())[0];
+        if(typeof move === 'undefined') return 0;
+        return move.rotation;
+    }
+});
+
+Template.team4.helpers({
+    showMove: function () {
+        var activity_server = (Activities.find({ id : 1 }).fetch())[0];
+        //We only show the moves in the shooting and resolving phases
+        if(typeof activity_server === 'undefined') return false;
+        if((activity_server.current_state.phase=='GameShoot')||(activity_server.current_state.phase=='GameResolve')) return true;
+        else return false;
+    }
+});
+
+
+//TODO: Solve bug for which some board states are left null!!
+
+
 //This is the Phaser game object
 var game;
 var teamColorsString = ['#377eb8','#4daf4a','#ff7f00','#984ea3'];
 var teamColorsHex = [0x377eb8,0x4daf4a,0xff7f00,0x984ea3];
 var game_active = false;
-var activity_server_id = null;
 
 //This represents the state of the (201x201) game board: 0-empty, 1-virus, -1/-4 team 1-4 polygons
 var board_state = [];
@@ -58,7 +254,7 @@ var gameover_limit = 10;
 var winning_limit = 0;
 var illegal_overlap_tolerance = 100; //in overlapping cells
 var proportion_virus = 0;
-
+var this_move_points = [0,0,0,0];//This holds the points achieved by each team this turn
 
 
 window.onload = function() {
@@ -152,7 +348,7 @@ function calculateVirusSpread(board, virulence, resistance, range, neutral, spre
 	for(var x = 0; x < board.length; x++){
 	    for(var y = 0; y < board[0].length; y++){ 
     		var adjacent_cells = getAdjacentVirusCells(x, y, board, range, spreading);
-	    	//TODO: Change so that team cells cannot be eaten away by virus
+	    	//TFor now, team cells cannot be eaten away by virus
 	    	//The probability of a virus cell dying away is (1-resistance)*(proportion of clean cells) 
 	    	// so for virulence 1 there is 50% chance that a lone virus cell will die away
 	    	if(board[x][y] == spreading){
@@ -290,8 +486,10 @@ function countCells(board, type){
 // }
 
 
-//TODO: check for the collisions with polygons, and kill the viruses and add points
+//check for the collisions with polygons, and kill the viruses and add points
 function calculateTeamMoves(board, this_turn){
+
+    this_move_points = [0,0,0,0];
 
     //We look for the collection of moves so far, for each team
     for (var team = 1; team <= 4; team++ ){
@@ -337,6 +535,7 @@ function getTeamCellState(team){
 //returns a false saying whether the movement was valid (false), or the new board after this move
 function calculateMove(board, move){
 
+
     //We calculate this moves' polygon, in game coordinates (-1...1)
     //We calculate the origin of the polygon to draw (with the translation parameter), in game coordinates (-1,1)
     var newOrigin = [(move.origin)[0]+(move.translation)[0],(move.origin)[1]+(move.translation)[1]];
@@ -355,9 +554,6 @@ function calculateMove(board, move){
     var max_bounding_x = boundingbox.x+boundingbox.width;
     var max_bounding_y = boundingbox.y+boundingbox.height;
 
-    // console.log("bounding box for team "+move.team+
-    //     ": from x="+min_bounding_x+"-->"+max_bounding_x+
-    //     ": from y="+min_bounding_y+"-->"+max_bounding_y);
 
     //We transform the bounding box to a (slightly larger) set of x,y 
     //indices in the state board matrix 0...200
@@ -365,9 +561,6 @@ function calculateMove(board, move){
     var min_bounding_y_index = (Math.round((1-max_bounding_y)*100))-1 < 0 ? 0 : (Math.round((1-max_bounding_y)*100))-1;//Since the y axis in world and screen/matrix coordinates are opposite, we take the max
     var max_bounding_x_index = (Math.round((max_bounding_x+1)*100))+1 > board.length-1 ? board.length-1 : (Math.round((max_bounding_x+1)*100))+1;
     var max_bounding_y_index = (Math.round((1-min_bounding_y)*100))+1 > board[0].length-1 ? board[0].length-1 : (Math.round((1-min_bounding_y)*100))+1;
-    // console.log("bounding box indices for team "+move.team+
-    //     ": from x="+min_bounding_x_index+"-->"+max_bounding_x_index+
-    //     ": from y="+min_bounding_y_index+"-->"+max_bounding_y_index);
 
     var boundingmatrix = [];
     var illegals = 0;
@@ -383,8 +576,7 @@ function calculateMove(board, move){
                 //(virus to destroy, illegal movements into others' territory)
                 if(board[i+min_bounding_x_index][j+min_bounding_y_index]==CellStates.VIRUS){
                     console.log("Killed a virus at "+(i+min_bounding_x_index)+","+(j+min_bounding_y_index)+"!");
-                    //TODO: Add points to the team 
-                    //we do not need to, it will not be painted in the next phase!
+                    this_move_points[move.team-1] +=10;
                     boundingmatrix[i][j] = getTeamCellState(move.team); 
                 }//TODO: How to deal with "almost ok solutions"?? 
                 //even perfect matching will throw some illegal results
@@ -418,7 +610,6 @@ function calculateMove(board, move){
             board[i+min_bounding_x_index][j+min_bounding_y_index] = boundingmatrix[i][j];
         }
     }
-
 
 
     //We return the new board
@@ -602,7 +793,11 @@ BattleshipGame.MainMenu.prototype = {
     }, 
  
     create : function(){ 
- 
+
+        //We get the activity state from the classroom server
+        //var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+        //For some reason, this will not find anything! we initialize in the first new turn, then
+
 	    var baddie = this.add.sprite(this.world.centerX, this.world.centerY-50, 'virus-big');
 	    baddie.anchor.setTo(0.5, 0.5);
 	    var text = this.add.text(this.world.centerX, this.world.centerY+50, 
@@ -666,7 +861,7 @@ BattleshipGame.GameNewTurn.prototype = {
     create : function(){ 
 
         //We get the activity state from the classroom server
-        activity_server_id = ((Activities.find({ id : 1 }).fetch())[0])._id;
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
 
 
 	 	turn++;
@@ -674,10 +869,30 @@ BattleshipGame.GameNewTurn.prototype = {
 	 	//If it's a new game, initialization of the game board and other variables
 	 	if(!game_active){
 
+            //We initialize the activity server with the current state
+            Activities.update(activity_server._id, {$set: {
+                                            type: 'battleship-collab',
+                                            current_state: {
+                                                active: false,
+                                                turn: turn,
+                                                phase: this.state.current,
+                                                board: null,
+                                                num_virus_cells: 0,
+                                                team1_points: 0,
+                                                team2_points: 0,
+                                                team3_points: 0,
+                                                team4_points: 0
+                                                }
+                                            }
+                                        });
+
+
 		    board_state = initializeBoard(board_state, board_dim_x, board_dim_y, CellStates.EMPTY);
 		    board_state = setBoardInitialState(board_state, CellStates.VIRUS, initial_virus_prob);
 
 	 		game_active = true;
+
+
 	 	}else{//We calculate the virus spread
 
 			board_state = calculateVirusSpread(board_state, virulence, resistance, range, CellStates.EMPTY, CellStates.VIRUS);
@@ -715,7 +930,7 @@ BattleshipGame.GameNewTurn.prototype = {
     	keyN.onDown.add(this.startAnalysis, this);
 
         //We update the activity server with the current state
-        Activities.update(activity_server_id, {$set: {
+        Activities.update(activity_server._id, {$set: {
                                         type: 'battleship-collab',
                                         current_state: {
                                             active: true,
@@ -723,10 +938,10 @@ BattleshipGame.GameNewTurn.prototype = {
                                             phase: this.state.current,
                                             board: board_state,
                                             num_virus_cells: num_virus_cells,
-                                            team1_points: 0,//TODO
-                                            team2_points: 0,//TODO
-                                            team3_points: 0,//TODO
-                                            team4_points: 0//TODO         
+                                            team1_points: turn==1 ? 0 : activity_server.current_state.team1_points,
+                                            team2_points: turn==1 ? 0 : activity_server.current_state.team2_points,
+                                            team3_points: turn==1 ? 0 : activity_server.current_state.team3_points,
+                                            team4_points: turn==1 ? 0 : activity_server.current_state.team4_points
                                             }
                                         }
                                     });
@@ -784,6 +999,10 @@ BattleshipGame.GameAnalysis.prototype = {
  
     create : function(){ 
 
+        //We get the activity state from the classroom server
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+
+
 	    drawBoardState(board_state);
 
 	    //We draw the moves for the last turn
@@ -802,7 +1021,7 @@ BattleshipGame.GameAnalysis.prototype = {
     	keyN.onDown.add(this.startShoot, this);
 
         //We update the activity server with the current state
-        Activities.update(activity_server_id, {$set: {
+        Activities.update(activity_server._id, {$set: {
                                         type: 'battleship-collab',
                                         current_state: {
                                             active: true,
@@ -810,10 +1029,10 @@ BattleshipGame.GameAnalysis.prototype = {
                                             phase: this.state.current,
                                             board: board_state,
                                             num_virus_cells: num_virus_cells,
-                                            team1_points: 0,//TODO
-                                            team2_points: 0,//TODO
-                                            team3_points: 0,//TODO
-                                            team4_points: 0//TODO         
+                                            team1_points: activity_server.current_state.team1_points,
+                                            team2_points: activity_server.current_state.team2_points,
+                                            team3_points: activity_server.current_state.team3_points,
+                                            team4_points: activity_server.current_state.team4_points
                                             }
                                         }
                                     });
@@ -871,6 +1090,9 @@ BattleshipGame.GameShoot.prototype = {
  
     create : function(){ 
 
+        //We get the activity state from the classroom server
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+
 	    drawBoardState(board_state);
 
    	    //We draw the moves for the last turn
@@ -891,7 +1113,7 @@ BattleshipGame.GameShoot.prototype = {
 
 
         //We update the activity server with the current state
-        Activities.update(activity_server_id, {$set: {
+        Activities.update(activity_server._id, {$set: {
                                         type: 'battleship-collab',
                                         current_state: {
                                             active: true,
@@ -899,10 +1121,10 @@ BattleshipGame.GameShoot.prototype = {
                                             phase: this.state.current,
                                             board: board_state,
                                             num_virus_cells: num_virus_cells,
-                                            team1_points: 0,//TODO
-                                            team2_points: 0,//TODO
-                                            team3_points: 0,//TODO
-                                            team4_points: 0//TODO         
+                                            team1_points: activity_server.current_state.team1_points,
+                                            team2_points: activity_server.current_state.team2_points,
+                                            team3_points: activity_server.current_state.team3_points,
+                                            team4_points: activity_server.current_state.team4_points
                                             }
                                         }
                                     });
@@ -959,8 +1181,11 @@ BattleshipGame.GameResolve.prototype = {
     }, 
  
     create : function(){ 
+
+        //We get the activity state from the classroom server
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+
     	//We get the moves from the database, and paint them
-	
         drawBoardState(board_state);
 
             
@@ -980,7 +1205,7 @@ BattleshipGame.GameResolve.prototype = {
     	keyN.onDown.add(this.startNext, this);
 
         //We update the activity server with the current state
-        Activities.update(activity_server_id, {$set: {
+        Activities.update(activity_server._id, {$set: {
                                         type: 'battleship-collab',
                                         current_state: {
                                             active: true,
@@ -988,10 +1213,10 @@ BattleshipGame.GameResolve.prototype = {
                                             phase: this.state.current,
                                             board: board_state,
                                             num_virus_cells: num_virus_cells,
-                                            team1_points: 0,//TODO
-                                            team2_points: 0,//TODO
-                                            team3_points: 0,//TODO
-                                            team4_points: 0//TODO         
+                                            team1_points: activity_server.current_state.team1_points+this_move_points[0],
+                                            team2_points: activity_server.current_state.team2_points+this_move_points[1],
+                                            team3_points: activity_server.current_state.team3_points+this_move_points[2],
+                                            team4_points: activity_server.current_state.team4_points+this_move_points[3]
                                             }
                                         }
                                     });
@@ -1054,6 +1279,9 @@ BattleshipGame.GameOver.prototype = {
     }, 
  
     create : function(){ 
+        //We get the activity state from the classroom server
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+
         drawBoardState(board_state);
 
         //We get the moves from the database, and paint them
@@ -1071,7 +1299,7 @@ BattleshipGame.GameOver.prototype = {
         keyN.onDown.add(this.startMenu, this);
 
         //We update the activity server with the current state
-        Activities.update(activity_server_id, {$set: {
+        Activities.update(activity_server._id, {$set: {
                                         type: 'battleship-collab',
                                         current_state: {
                                             active: false,
@@ -1079,10 +1307,10 @@ BattleshipGame.GameOver.prototype = {
                                             phase: this.state.current,
                                             board: board_state,
                                             num_virus_cells: num_virus_cells,
-                                            team1_points: 0,//TODO
-                                            team2_points: 0,//TODO
-                                            team3_points: 0,//TODO
-                                            team4_points: 0//TODO         
+                                            team1_points: activity_server.current_state.team1_points,
+                                            team2_points: activity_server.current_state.team2_points,
+                                            team3_points: activity_server.current_state.team3_points,
+                                            team4_points: activity_server.current_state.team4_points
                                             }
                                         }
                                     });
@@ -1138,6 +1366,9 @@ BattleshipGame.GameWin.prototype = {
     }, 
  
     create : function(){ 
+        //We get the activity state from the classroom server
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+
         drawBoardState(board_state);
 
         //We get the moves from the database, and paint them
@@ -1157,7 +1388,7 @@ BattleshipGame.GameWin.prototype = {
         keyN.onDown.add(this.startMenu, this);
 
         //We update the activity server with the current state
-        Activities.update(activity_server_id, {$set: {
+        Activities.update(activity_server._id, {$set: {
                                         type: 'battleship-collab',
                                         current_state: {
                                             active: false,
@@ -1165,10 +1396,10 @@ BattleshipGame.GameWin.prototype = {
                                             phase: this.state.current,
                                             board: board_state,
                                             num_virus_cells: num_virus_cells,
-                                            team1_points: 0,//TODO
-                                            team2_points: 0,//TODO
-                                            team3_points: 0,//TODO
-                                            team4_points: 0//TODO         
+                                            team1_points: activity_server.current_state.team1_points,
+                                            team2_points: activity_server.current_state.team2_points,
+                                            team3_points: activity_server.current_state.team3_points,
+                                            team4_points: activity_server.current_state.team4_points
                                             }
                                         }
                                     });

@@ -9,25 +9,24 @@
 	</div>
 
 	<div id="topleft">
-		<h1>Team 1 Stats</h1>
+		{{> team1}}
 	</div>
 
 	<div id="topright">
-		<h1>Team 2 Stats</h1>
+		{{> team2}}
 	</div>
 
 	<div id="bottomright">
-		<h1>Team 3 Stats</h1>
+		{{> team3}}
 	</div>
 
 	<div id="bottomleft">
-		<h1>Team 4 Stats</h1>
+		{{> team4}}
 	</div>
 
 	<div id="gameboard"></div>
 
 	<div id="bottomcenter">
-		<h1>Virus Stats</h1>
 
   {{> virus}}
 
@@ -36,7 +35,61 @@
 </body>
 
 <template name="virus">
-  <!--button>Click Me</button-->
+	{{#if showBlock}}
+		<h1>Virus Stats</h1>
   <p>There are currently {{counter}} virus cells.</p>
   <p>There are {{proportion}} virus cells per empty cell (if we reach 10, the game will be over!).</p>
+	{{/if}}
+</template>
+
+<template name="team1">
+	{{#if showBlock}}
+	<h1>Team 1 Stats</h1>
+
+  <p>Score: {{team1_points}}</p>
+		{{#if showMove}}
+		  <p>Translation: {{translation}}</p>
+		  <p>Rotation: {{rotation}} deg.</p>
+		  <p>Shape: </p>
+		{{/if}}
+	{{/if}}
+</template>
+
+<template name="team2">
+	{{#if showBlock}}
+	<h1>Team 2 Stats</h1>
+
+  <p>Score: {{team2_points}}</p>
+	{{#if showMove}}
+	  <p>Translation: {{translation}}</p>
+	  <p>Rotation: {{rotation}} deg.</p>
+	  <p>Shape: </p>
+	{{/if}}
+	{{/if}}
+</template>
+
+<template name="team3">
+	{{#if showBlock}}
+	<h1>Team 3 Stats</h1>
+
+  <p>Score: {{team3_points}}</p>
+	{{#if showMove}}
+	  <p>Translation: {{translation}}</p>
+	  <p>Rotation: {{rotation}} deg.</p>
+	  <p>Shape: </p>
+	{{/if}}
+	{{/if}}
+</template>
+
+<template name="team4">
+	{{#if showBlock}}
+	<h1>Team 4 Stats</h1>
+
+  <p>Score: {{team4_points}}</p>
+	{{#if showMove}}
+	  <p>Translation: {{translation}}</p>
+	  <p>Rotation: {{rotation}} deg.</p>
+	  <p>Shape: </p>
+	{{/if}}
+	{{/if}}
 </template>
