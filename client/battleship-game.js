@@ -1,17 +1,17 @@
 // FROM THE BASE METEOR PROJECT... DELETE!
 // counter starts at 0
-Session.setDefault('counter', 0);
+Session.setDefault('virus_counter', 0);
+Session.setDefault('proportion_counter', 0);
 
 Template.virus.helpers({
   counter: function () {
-    return Session.get('counter');
+    return Session.get('virus_counter');
   }
 });
 
-Template.virus.events({
-  'click button': function () {
-    // increment the counter when button is clicked
-    Session.set('counter', Session.get('counter') + 1);
+Template.virus.helpers({
+  proportion: function () {
+    return Session.get('proportion_counter');
   }
 });
 
@@ -45,18 +45,19 @@ var board_dim_y = 201;
 //var resistance = 0.5;
 //var range = 1;
 // -- these values start small, double each turn and lead to complete invasion in 20 turns
-var initial_virus_prob = 0.001;
-var virulence = 0.99;
-var resistance = 0.7;
+var initial_virus_prob = 0.003;
+var virulence = 0.9;
+var resistance = 0.05;
 var range = 2;
 
 var turn = 0;
 var turn_delay = 3000; //time in ms. to advance to the next turn -- for debugging purposes only
 var num_virus_cells = 0;
-//Game is over when LESS than this amount of cells are empty
-var gameover_limit = 0.01*board_dim_x*board_dim_y;
+//Game is over when proportion of virus to cells is X to 1
+var gameover_limit = 10;
 var winning_limit = 0;
-
+var illegal_overlap_tolerance = 100; //in overlapping cells
+var proportion_virus = 0;
 
 
 
@@ -151,19 +152,21 @@ function calculateVirusSpread(board, virulence, resistance, range, neutral, spre
 	for(var x = 0; x < board.length; x++){
 	    for(var y = 0; y < board[0].length; y++){ 
     		var adjacent_cells = getAdjacentVirusCells(x, y, board, range, spreading);
-	    	
+	    	//TODO: Change so that team cells cannot be eaten away by virus
 	    	//The probability of a virus cell dying away is (1-resistance)*(proportion of clean cells) 
 	    	// so for virulence 1 there is 50% chance that a lone virus cell will die away
 	    	if(board[x][y] == spreading){
 	    		var prob = (1-resistance)*((max_adjacence-adjacent_cells)/max_adjacence);
 	    		if(Math.random()<prob) new_board[x][y] = neutral;
 	    		else new_board[x][y] = board[x][y];
-	    	}else{
+	    	}else if(board[x][y] == neutral){
 	    		//The probability of an empty cell being a virus is (proportion of adjacent virus cells)*virulence
 	    		var prob = (adjacent_cells/max_adjacence)*virulence;
 	    		if(Math.random()<prob) new_board[x][y] = spreading;
 	    		else new_board[x][y] = board[x][y];
-	    	}
+	    	}else{//If it is a team cell, we just leave it as it is
+                new_board[x][y] = board[x][y];
+            }
 	    }    
 	}
 	return new_board;
@@ -286,6 +289,168 @@ function countCells(board, type){
 
 // }
 
+
+//TODO: check for the collisions with polygons, and kill the viruses and add points
+function calculateTeamMoves(board, this_turn){
+
+    //We look for the collection of moves so far, for each team
+    for (var team = 1; team <= 4; team++ ){
+        var teamMoves = Moves.find({activity_id: 1, team: team, turn: { $lte: this_turn }}).fetch();    
+
+        console.log("Calculating team "+team+" move. Found "+teamMoves.length);
+
+        //We get the last move 
+        if(teamMoves.length != this_turn){
+            console.log("Something strange happened. There are less moves than turns!");
+            return board;
+        }else{
+            //TODO: check for overlapping polygons in this turn 
+            //-- bounding box of all polygons, check points for inclusion in more than one polygon
+            //-- or check segment intersections for all sides of all polygons
+            var result = calculateMove(board, teamMoves[this_turn - 1]);
+            if(!result){
+                console.log("Illegal move by team "+team);
+                var illMove = Moves.find({activity_id: 1, team: team, turn: this_turn }).fetch();    
+               //We update this move to say it was illegal
+               Moves.update(illMove[0]._id, {$set: {illegal : true}});
+            }else{
+                board = result;
+            }
+        }
+    }
+
+    console.log("Finished Calculating moves!");
+    return board;
+}
+
+//get the corresponding cell state to the team 1...4
+function getTeamCellState(team){
+    if(team==1) return CellStates.TEAM1;
+    else if(team==2) return CellStates.TEAM2;
+    else if(team==3) return CellStates.TEAM3;
+    else if(team==4) return CellStates.TEAM4;
+    else return CellStates.EMPTY;//should not happen, actually
+}
+
+//This function calculates whether a polygon overlaps with viruses, and kills them 
+//and mark the territory of this team
+//returns a false saying whether the movement was valid (false), or the new board after this move
+function calculateMove(board, move){
+
+    //We calculate this moves' polygon, in game coordinates (-1...1)
+    //We calculate the origin of the polygon to draw (with the translation parameter), in game coordinates (-1,1)
+    var newOrigin = [(move.origin)[0]+(move.translation)[0],(move.origin)[1]+(move.translation)[1]];
+    //Transform (rotate the polygon vertices), still in game coordinates
+    var rotatedPolygon = rotatePoints(move.polygon, move.rotation);
+    var newPolygon = [];//This will contain the final translated-rotated polygon
+    for (var i = 0; i < rotatedPolygon.length; i++){
+        var vertex = rotatedPolygon[i];//The vertex, rotated but centered on 0,0
+        newPolygon.push([(arraySum(vertex,newOrigin))[0], (arraySum(vertex,newOrigin))[1]]);
+    }
+
+    //We get the x and y coordinates of the bounding rectangle of the polygon (in matrix dimensions, i.e. 0...200)
+    var boundingbox = PolyK.GetAABB(flattenCoords(newPolygon));
+    var min_bounding_x = boundingbox.x;
+    var min_bounding_y = boundingbox.y;
+    var max_bounding_x = boundingbox.x+boundingbox.width;
+    var max_bounding_y = boundingbox.y+boundingbox.height;
+
+    // console.log("bounding box for team "+move.team+
+    //     ": from x="+min_bounding_x+"-->"+max_bounding_x+
+    //     ": from y="+min_bounding_y+"-->"+max_bounding_y);
+
+    //We transform the bounding box to a (slightly larger) set of x,y 
+    //indices in the state board matrix 0...200
+    var min_bounding_x_index = (Math.round((min_bounding_x+1)*100))-1 < 0 ? 0 : (Math.round((min_bounding_x+1)*100))-1;
+    var min_bounding_y_index = (Math.round((1-max_bounding_y)*100))-1 < 0 ? 0 : (Math.round((1-max_bounding_y)*100))-1;//Since the y axis in world and screen/matrix coordinates are opposite, we take the max
+    var max_bounding_x_index = (Math.round((max_bounding_x+1)*100))+1 > board.length-1 ? board.length-1 : (Math.round((max_bounding_x+1)*100))+1;
+    var max_bounding_y_index = (Math.round((1-min_bounding_y)*100))+1 > board[0].length-1 ? board[0].length-1 : (Math.round((1-min_bounding_y)*100))+1;
+    // console.log("bounding box indices for team "+move.team+
+    //     ": from x="+min_bounding_x_index+"-->"+max_bounding_x_index+
+    //     ": from y="+min_bounding_y_index+"-->"+max_bounding_y_index);
+
+    var boundingmatrix = [];
+    var illegals = 0;
+    //For each point in the bounding rectangle, we calculate whether it is inside the polygon
+    for(var i = 0; i<=max_bounding_x_index-min_bounding_x_index; i++){
+        boundingmatrix[i] = [];
+        for(var j = 0; j<=max_bounding_y_index-min_bounding_y_index; j++){
+            //we get the point to which this matrix element corresponds in the map
+            var coords = transformMatrixToCoords(i+min_bounding_x_index,j+min_bounding_y_index);
+            //we check whether the point is in the polygon
+            if(PolyK.ContainsPoint ( flattenCoords(newPolygon), coords[0], coords[1] ) ){
+                //If a point is in the polygon, we check what it contains, and act accordingly 
+                //(virus to destroy, illegal movements into others' territory)
+                if(board[i+min_bounding_x_index][j+min_bounding_y_index]==CellStates.VIRUS){
+                    console.log("Killed a virus at "+(i+min_bounding_x_index)+","+(j+min_bounding_y_index)+"!");
+                    //TODO: Add points to the team 
+                    //we do not need to, it will not be painted in the next phase!
+                    boundingmatrix[i][j] = getTeamCellState(move.team); 
+                }//TODO: How to deal with "almost ok solutions"?? 
+                //even perfect matching will throw some illegal results
+                //for now, we allow a certain number of illegal cells and only declare it illegal if surpasses
+                else if(board[i+min_bounding_x_index][j+min_bounding_y_index]==CellStates.EMPTY){
+                    boundingmatrix[i][j] = getTeamCellState(move.team); 
+                }
+                else{//The remaining states are from teams, not allowed! 
+                    //we declare an invalid move and leave the cell as it was
+                    console.log("detected illegal move!");
+                    illegals++;
+                }
+
+            }else{
+                //If a point is not in the polygon, we just copy from the board state
+                boundingmatrix[i][j] = board[i+min_bounding_x_index][j+min_bounding_y_index];                
+            }
+
+
+
+
+        }
+
+    }
+
+    if(illegals>illegal_overlap_tolerance) return false;
+
+    //We copy the results of this new bounding rectangle states back into the original board state
+    for(var i = 0; i<=max_bounding_x_index-min_bounding_x_index; i++){
+        for(var j = 0; j<=max_bounding_y_index-min_bounding_y_index; j++){
+            board[i+min_bounding_x_index][j+min_bounding_y_index] = boundingmatrix[i][j];
+        }
+    }
+
+
+
+    //We return the new board
+    return board;
+
+}
+
+
+//Takes the two indices in the board matrix (0...200) and transforms them 
+//to a geometrical point at its center in the game coordinate system
+function transformMatrixToCoords(i,j){
+
+    var coords = [0,0];
+    coords[0] = (i/100)-1;
+    coords[1] = 1-(j/100);
+    return coords;
+}
+
+
+
+//takes an array of arrays (dim x*2) and converts it to an uni-dimensional array, as needed by PolyK library
+function flattenCoords(polygon){
+    var newArray = [];
+    for(var i = 0 ; i < polygon.length ; i++){
+        var vertex = polygon[i];
+        newArray.push(vertex[0]);
+        newArray.push(vertex[1]);
+    }
+    return newArray;
+}
+
+
 function drawTeamMoves(this_turn){
 
 	//We look for the collection of moves so far, for each team
@@ -296,14 +461,16 @@ function drawTeamMoves(this_turn){
 
 		for(var i = 0; i < teamMoves.length; i++){
 
-			drawMove(teamMoves[i], teamColorsHex[team-1], 0x000000);
 			//We only draw the origin of the move in the last one
-            if(i==teamMoves.length-1) drawOrigin(teamMoves[i], teamColorsHex[team-1], 0x000000);
+            if(i==teamMoves.length-1){
+                drawMove(teamMoves[i], teamColorsHex[team-1], 0x000000);
+                drawOrigin(teamMoves[i], teamColorsHex[team-1], 0x000000);  
+            } 
 		}
 
 	}
 
-	console.log("Finished drawing moves!")
+	console.log("Finished drawing moves!");
 }
 
 function drawOrigin(move, fillcolor, linecolor){
@@ -326,8 +493,13 @@ function drawMove(move, fillcolor, linecolor){
 
     var graphics = game.add.graphics();
 
-    graphics.beginFill(fillcolor);
-    graphics.lineStyle(1, linecolor, 1);
+    if(!move.illegal){//Coloring for legal moves, with the team color
+        graphics.beginFill(fillcolor);
+        graphics.lineStyle(1, linecolor, 1);
+    }else{
+        graphics.beginFill(0x000000, 0.2);
+        graphics.lineStyle(3, 0xff0000, 1);
+    }
 
     //We calculate the origin of the polygon to draw (with the translation parameter), in game coordinates (-1,1)
     var newOrigin = [(move.origin)[0]+(move.translation)[0],(move.origin)[1]+(move.translation)[1]];
@@ -515,9 +687,9 @@ BattleshipGame.GameNewTurn.prototype = {
 	    drawBoardState(board_state);
 
 	    //We draw the moves for the last turn
-		drawTeamMoves(turn-1);
+		//drawTeamMoves(turn-1);
 
-	 	Session.set('counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
+	 	Session.set('virus_counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
         //If this is the first turn, we set the winning condition, e.g. to half of the initial viruses
         if(turn == 1) winning_limit = Math.floor(num_virus_cells/2);
 
@@ -525,7 +697,12 @@ BattleshipGame.GameNewTurn.prototype = {
 
 		//We check the losing condition for game over
 		num_free_cells = countCells(board_state,CellStates.EMPTY);
-		if(num_free_cells < gameover_limit) this.gameOver();
+        if(num_free_cells == 0) this.gameOver();
+		else{
+            proportion_virus = num_virus_cells/num_free_cells;
+            Session.set('proportion_counter', proportion_virus);
+            if(proportion_virus > gameover_limit) this.gameOver();
+        }
 
 		//We paint the New turn message
 	    var text = this.add.text(this.world.centerX, this.world.centerY, 
@@ -610,7 +787,7 @@ BattleshipGame.GameAnalysis.prototype = {
 	    drawBoardState(board_state);
 
 	    //We draw the moves for the last turn
-		drawTeamMoves(turn-1);
+		//drawTeamMoves(turn-1);
 
 	    darkenBoard();
 		console.log("Analysis turn "+turn+" drawn");
@@ -697,7 +874,7 @@ BattleshipGame.GameShoot.prototype = {
 	    drawBoardState(board_state);
 
    	    //We draw the moves for the last turn
-		drawTeamMoves(turn-1);
+		//drawTeamMoves(turn-1);
 
 	    darkenBoard();
 
@@ -783,16 +960,20 @@ BattleshipGame.GameResolve.prototype = {
  
     create : function(){ 
     	//We get the moves from the database, and paint them
-		//TODO: check for the collisions with polygons, and kill the viruses and add points
-
+	
         drawBoardState(board_state);
-        //TODO: make that only the latest move is actually displayed (the rest should come from board state)
+
+            
+        //check for the collisions with polygons, and kill the viruses and add points
+        board_state = calculateTeamMoves(board_state,turn);
+        //only the latest move is actually displayed as a polygon
+        //(the rest should come from board state)
         drawTeamMoves(turn);
 
 		console.log("Resolve turn "+turn+" drawn");
 
-        num_virus_cells = countCells()
-		if(Session.get('counter') < winning_limit) this.startWin();
+        num_virus_cells = countCells(board_state,CellStates.VIRUS);
+		if(Session.get('proportion_counter') < initial_virus_prob/2) this.startWin();
 
 	 	//We add the key listener to pass to the next phase
 	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);

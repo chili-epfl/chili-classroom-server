@@ -33,7 +33,8 @@ if (Moves.find().count() === 0) {
 		origin: [-1,1],
 		polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
 		rotation: 90,
-		translation: [0,0]
+		translation: [0,0],
+		illegal: false
 	});
 	Moves.insert({
 		activity_id: 1,
@@ -42,7 +43,8 @@ if (Moves.find().count() === 0) {
 		origin: [1,1],
 		polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
 		rotation: 180,
-		translation: [0,0]
+		translation: [0,0],
+		illegal: false
 	});
 	Moves.insert({
 		activity_id: 1,
@@ -51,7 +53,8 @@ if (Moves.find().count() === 0) {
 		origin: [1,-1],
 		polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
 		rotation: 270,
-		translation: [0,0]
+		translation: [0,0],
+		illegal: false
 	});
 	Moves.insert({
 		activity_id: 1,
@@ -60,7 +63,8 @@ if (Moves.find().count() === 0) {
 		origin: [-1,-1],
 		polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
 		rotation: 0,
-		translation: [0,0]
+		translation: [0,0],
+		illegal: false
 	});
 
 
@@ -78,7 +82,8 @@ if (Moves.find().count() === 0) {
 			origin: even ? [-1+((half-1)*0.2),1-((half-1)*0.2)] : [-1+((half-1)*0.2),1-(half*0.2)],
 			polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
 			rotation: 90,
-			translation: even ? [0,-0.2] : [0.2,0]
+			translation: even ? [0,-0.2] : [0.2,0],
+			illegal: false
 		});
 		Moves.insert({
 			activity_id: 1,
@@ -87,7 +92,8 @@ if (Moves.find().count() === 0) {
 			origin: even ? [1-((half-1)*0.2),1-((half-1)*0.2)] : [1-((half)*0.2),1-((half-1)*0.2)],
 			polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
 			rotation: 180,
-			translation: even ? [-0.2,0] : [0,-0.2]
+			translation: even ? [-0.2,0] : [0,-0.2],
+			illegal: false
 		});
 		Moves.insert({
 			activity_id: 1,
@@ -96,7 +102,8 @@ if (Moves.find().count() === 0) {
 			origin: even ? [1-((half-1)*0.2),-1+((half-1)*0.2)] : [1-((half-1)*0.2),-1+(half*0.2)],
 			polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
 			rotation: 270,
-			translation: even ? [0,0.2] : [-0.2,0]
+			translation: even ? [0,0.2] : [-0.2,0],
+			illegal: false
 		});
 		Moves.insert({
 			activity_id: 1,
@@ -105,7 +112,8 @@ if (Moves.find().count() === 0) {
 			origin: even ? [-1+((half-1)*0.2),-1+((half-1)*0.2)] : [-1+((half)*0.2),-1+((half-1)*0.2)],
 			polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
 			rotation: 0,
-			translation: even ? [0.2,0] : [0,0.2]
+			translation: even ? [0.2,0] : [0,0.2],
+			illegal: false
 		});
 
 	}
