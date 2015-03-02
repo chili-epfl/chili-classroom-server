@@ -445,6 +445,48 @@ function drawBoardState(board){
 
 }
 
+//This function draws the grid and labels, to have a visual frame of reference
+function drawGrid(){
+	var graphs = game.add.graphics();
+    
+    //Main axes
+    graphs.lineStyle(1, 0x000000, 1);
+    graphs.moveTo(0,game.world.height / 2);
+    graphs.lineTo(game.world.width,game.world.height / 2);
+    graphs.moveTo(game.world.width / 2, 0);
+    graphs.lineTo(game.world.width / 2, game.world.height);
+
+    //basic grid every 0.1, from 0.1 to 0.9
+    graphs.lineStyle(1, 0x000000, 0.2);
+    for (var i=0.1; i<=0.9; i+=0.1){
+    	//positive 0.1s
+	    graphs.moveTo(0,game.world.height*(0.5+i/2));
+	    graphs.lineTo(game.world.width,game.world.height*(0.5+i/2));
+	    graphs.moveTo(game.world.width*(0.5+i/2), 0);
+	    graphs.lineTo(game.world.width*(0.5+i/2), game.world.height);
+
+	    //negative 0.1s
+	    graphs.moveTo(0,game.world.height*(0.5-i/2));
+	    graphs.lineTo(game.world.width,game.world.height*(0.5-i/2));
+	    graphs.moveTo(game.world.width*(0.5-i/2), 0);
+	    graphs.lineTo(game.world.width*(0.5-i/2), game.world.height);
+    }
+
+    //labels
+    var text = game.add.text(game.world.centerX, game.world.centerY, ' (0,0)', { font: '16px Arial', fill: '#000' , align: 'left'});
+    text.anchor.set(0,0.8);
+    var text2 = game.add.text(0, 0, ' (-1,1)', { font: '16px Arial', fill: '#000' , align: 'left'});
+    text2.anchor.set(0,0);
+    var text3 = game.add.text(game.world.width, 0, '(1,1) ', { font: '16px Arial', fill: '#000' , align: 'right'});
+    text3.anchor.set(1,0);
+    var text4 = game.add.text(game.world.width, game.world.height, '(1,-1) ', { font: '16px Arial', fill: '#000' , align: 'right'});
+    text4.anchor.set(1,1);
+    var text5 = game.add.text(0, game.world.height, ' (1,-1)', { font: '16px Arial', fill: '#000' , align: 'left'});
+    text5.anchor.set(0,1);
+
+}
+
+
 
 // function nextTurn() {
 // 		console.log("Advancing from turn "+turn);
@@ -919,6 +961,10 @@ BattleshipGame.GameNewTurn.prototype = {
             if(proportion_virus > gameover_limit) this.gameOver();
         }
 
+
+		drawGrid();
+
+
 		//We paint the New turn message
 	    var text = this.add.text(this.world.centerX, this.world.centerY, 
 	    	'Turn '+turn , 
@@ -1007,6 +1053,8 @@ BattleshipGame.GameAnalysis.prototype = {
 
 	    //We draw the moves for the last turn
 		//drawTeamMoves(turn-1);
+
+		drawGrid();
 
 	    darkenBoard();
 		console.log("Analysis turn "+turn+" drawn");
@@ -1097,6 +1145,8 @@ BattleshipGame.GameShoot.prototype = {
 
    	    //We draw the moves for the last turn
 		//drawTeamMoves(turn-1);
+
+		drawGrid();
 
 	    darkenBoard();
 
@@ -1195,6 +1245,10 @@ BattleshipGame.GameResolve.prototype = {
         //(the rest should come from board state)
         drawTeamMoves(turn);
 
+
+		drawGrid();
+
+
 		console.log("Resolve turn "+turn+" drawn");
 
         num_virus_cells = countCells(board_state,CellStates.VIRUS);
@@ -1287,6 +1341,10 @@ BattleshipGame.GameOver.prototype = {
         //We get the moves from the database, and paint them
         drawTeamMoves(turn);
 
+
+		drawGrid();
+
+
          var baddie = game.add.sprite(game.world.centerX, game.world.centerY-50, 'virus-big');
          baddie.anchor.setTo(0.5, 0.5);
          var text = game.add.text(game.world.centerX, game.world.centerY+50, 'Game over!', { font: '64px Arial', fill: '#300' , align: 'center'});
@@ -1373,6 +1431,10 @@ BattleshipGame.GameWin.prototype = {
 
         //We get the moves from the database, and paint them
         drawTeamMoves(turn);
+
+
+		drawGrid();
+
 
          var baddie = game.add.sprite(game.world.centerX, game.world.centerY-50, 'virus-big');
          baddie.anchor.setTo(0.5, 0.5);
