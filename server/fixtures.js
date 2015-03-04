@@ -14,8 +14,7 @@ if (Activities.find().count()===0){
 			team1_points: 0,
 			team2_points: 0,
 			team3_points: 0,
-			team4_points: 0			
-		}
+			team4_points: 0		}
 	});
 }
 
