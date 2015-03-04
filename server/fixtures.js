@@ -31,7 +31,7 @@ if (Moves.find().count() === 0) {
 		turn: 1,
 		team: 1,
 		origin: [-1,1],
-		polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
+		polygon: [[0,0],[0.333,0],[0.533,0.2],[0.2,0.2]],
 		rotation: 90,
 		translation: [0,0],
 		illegal: false
@@ -41,7 +41,7 @@ if (Moves.find().count() === 0) {
 		turn: 1,
 		team: 2,
 		origin: [1,1],
-		polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
+		polygon: [[0,0],[0.166,0],[0.25,0.144],[0.166,0.288],[0,0.288],[-0.083,0.144]],
 		rotation: 180,
 		translation: [0,0],
 		illegal: false
@@ -51,7 +51,7 @@ if (Moves.find().count() === 0) {
 		turn: 1,
 		team: 3,
 		origin: [1,-1],
-		polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
+		polygon: [[0,0],[0.25,0],[0.25,0.25],[0,0.25]],
 		rotation: 270,
 		translation: [0,0],
 		illegal: false
@@ -61,7 +61,7 @@ if (Moves.find().count() === 0) {
 		turn: 1,
 		team: 4,
 		origin: [-1,-1],
-		polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
+		polygon: [[0,0],[0.5,0],[0.6,0.125],[0.4,0.25]],
 		rotation: 0,
 		translation: [0,0],
 		illegal: false
@@ -79,40 +79,40 @@ if (Moves.find().count() === 0) {
 			activity_id: 1,
 			turn: i,
 			team: 1,
-			origin: even ? [-1+((half-1)*0.2),1-((half-1)*0.2)] : [-1+((half-1)*0.2),1-(half*0.2)],
-			polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
+			origin: even ? [-1+((half-1)*0.2),1-((half-1)*0.2)] : [-1+((half-1)*0.2),1-0.333-(half-1)*0.2],
+			polygon: [[0,0],[0.333,0],[0.533,0.2],[0.2,0.2]],
 			rotation: 90,
-			translation: even ? [0,-0.2] : [0.2,0],
+			translation: even ? [0,-0.333] : [0.2,0.133],
 			illegal: false
 		});
 		Moves.insert({
 			activity_id: 1,
 			turn: i,
 			team: 2,
-			origin: even ? [1-((half-1)*0.2),1-((half-1)*0.2)] : [1-((half)*0.2),1-((half-1)*0.2)],
-			polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
+			origin: i==2 ? [1,1] : (even ? [1-((half-2)*0.25),1-((half)*0.144)] : [1-((half)*0.25),1-((half)*0.144)]),
+			polygon: [[0,0],[0.166,0],[0.25,0.144],[0.166,0.288],[0,0.288],[-0.083,0.144]],
 			rotation: 180,
-			translation: even ? [-0.2,0] : [0,-0.2],
+			translation: i==2 ? [-0.25,-0.144] : (even ? [-0.5,0] : [0.25,-0.144]),
 			illegal: false
 		});
 		Moves.insert({
 			activity_id: 1,
 			turn: i,
 			team: 3,
-			origin: even ? [1-((half-1)*0.2),-1+((half-1)*0.2)] : [1-((half-1)*0.2),-1+(half*0.2)],
-			polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
+			origin: even ? [1-((half-1)*0.25),-1+((half-1)*0.25)] : [1-((half-1)*0.25),-1+(half*0.25)],
+			polygon: [[0,0],[0.25,0],[0.25,0.25],[0,0.25]],
 			rotation: 270,
-			translation: even ? [0,0.2] : [-0.2,0],
+			translation: even ? [0,0.25] : [-0.25,0],
 			illegal: false
 		});
 		Moves.insert({
 			activity_id: 1,
 			turn: i,
 			team: 4,
-			origin: even ? [-1+((half-1)*0.2),-1+((half-1)*0.2)] : [-1+((half)*0.2),-1+((half-1)*0.2)],
-			polygon: [[0,0],[0.2,0],[0.4,0.2],[0.2,0.2]],
+			origin: even ? [-1+((half-1)*0.4),-1+((half-1)*0.25)] : [-0.5+((half-1)*0.4),-1+((half-1)*0.25)],
+			polygon: [[0,0],[0.5,0],[0.6,0.125],[0.4,0.25]],
 			rotation: 0,
-			translation: even ? [0.2,0] : [0,0.2],
+			translation: even ? [0.5,0] : [-0.1,0.25],
 			illegal: false
 		});
 

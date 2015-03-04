@@ -425,7 +425,9 @@ function drawBoardState(board){
         	if(board[x][y]==CellStates.VIRUS){
 	            var virus = viruses.create(x * 3, y * 3, 'virus');
 	            virus.anchor.setTo(0.5, 0.5);
-        	}else if(board[x][y]==CellStates.TEAM1){
+        	} 
+        	//We paint only the viruses - the team plays will be painted as polygons
+        	/*else if(board[x][y]==CellStates.TEAM1){
                 colors.beginFill(teamColorsHex[0]);
                 colors.drawRect((x * 3)-2, (y * 3)-2, 4, 4);//TODO: For now the squares are side=4, although should be 3? this is to have them be centered
             }else if(board[x][y]==CellStates.TEAM2){
@@ -437,7 +439,7 @@ function drawBoardState(board){
             }else if(board[x][y]==CellStates.TEAM4){
                 colors.beginFill(teamColorsHex[3]);
                 colors.drawRect((x * 3)-2, (y * 3)-2, 4, 4);//TODO: For now the squares are side=4, although should be 3? this is to have them be centered
-            }
+            }*/
         }
     }
     colors.endFill();
@@ -531,7 +533,7 @@ function countCells(board, type){
 //check for the collisions with polygons, and kill the viruses and add points
 function calculateTeamMoves(board, this_turn){
 
-    this_move_points = [0,0,0,0];
+    this_move_points = [0,0,0,0];//The score that each team is getting from the last (current) move
 
     //We look for the collection of moves so far, for each team
     for (var team = 1; team <= 4; team++ ){
@@ -629,6 +631,7 @@ function calculateMove(board, move){
                 else{//The remaining states are from teams, not allowed! 
                     //we declare an invalid move and leave the cell as it was
                     console.log("detected illegal move!");
+	                boundingmatrix[i][j] = board[i+min_bounding_x_index][j+min_bounding_y_index];                
                     illegals++;
                 }
 
@@ -694,9 +697,8 @@ function drawTeamMoves(this_turn){
 
 		for(var i = 0; i < teamMoves.length; i++){
 
-			//We only draw the origin of the move in the last one
+            if(!teamMoves[i].illegal || i==teamMoves.length-1) drawMove(teamMoves[i], teamColorsHex[team-1], 0x000000);
             if(i==teamMoves.length-1){
-                drawMove(teamMoves[i], teamColorsHex[team-1], 0x000000);
                 drawOrigin(teamMoves[i], teamColorsHex[team-1], 0x000000);  
             } 
 		}
@@ -944,7 +946,7 @@ BattleshipGame.GameNewTurn.prototype = {
 	    drawBoardState(board_state);
 
 	    //We draw the moves for the last turn
-		//drawTeamMoves(turn-1);
+		drawTeamMoves(turn-1);
 
 	 	Session.set('virus_counter', num_virus_cells = countCells(board_state,CellStates.VIRUS));
         //If this is the first turn, we set the winning condition, e.g. to half of the initial viruses
@@ -1052,7 +1054,7 @@ BattleshipGame.GameAnalysis.prototype = {
 	    drawBoardState(board_state);
 
 	    //We draw the moves for the last turn
-		//drawTeamMoves(turn-1);
+		drawTeamMoves(turn-1);
 
 		drawGrid();
 
@@ -1144,7 +1146,7 @@ BattleshipGame.GameShoot.prototype = {
 	    drawBoardState(board_state);
 
    	    //We draw the moves for the last turn
-		//drawTeamMoves(turn-1);
+		drawTeamMoves(turn-1);
 
 		drawGrid();
 
