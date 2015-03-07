@@ -21,7 +21,7 @@ Template.virus.helpers({
 
 Template.virus.helpers({
   proportion: function () {
-    return Session.get('proportion_counter');
+    return Session.get('proportion_counter').toFixed(3);
   }
 });
 
@@ -47,17 +47,17 @@ Template.team1.helpers({
 
 Template.team1.helpers({
     translation: function () {
-        var move = (Moves.find({activity_id: 1, team: 1, turn: turn }).fetch())[0];
-        if(typeof move === 'undefined') return [0,0];
-        return move.translation;
+        var shoot = (CurrentShoots.find("1").fetch())[0];
+        if(typeof shoot === 'undefined') return [0,0];
+        return shoot.translation;
     }
 });
 
 Template.team1.helpers({
     rotation: function () {
-        var move = (Moves.find({activity_id: 1, team: 1, turn: turn }).fetch())[0];
-        if(typeof move === 'undefined') return 0;
-        return move.rotation;
+        var shoot = (CurrentShoots.find("1").fetch())[0];
+        if(typeof shoot === 'undefined') return [0,0];
+        return shoot.rotation;
     }
 });
 
@@ -92,17 +92,17 @@ Template.team2.helpers({
 
 Template.team2.helpers({
     translation: function () {
-        var move = (Moves.find({activity_id: 1, team: 2, turn: turn }).fetch())[0];
-        if(typeof move === 'undefined') return [0,0];
-        return move.translation;
+        var shoot = (CurrentShoots.find("2").fetch())[0];
+        if(typeof shoot === 'undefined') return [0,0];
+        return shoot.translation;
     }
 });
 
 Template.team2.helpers({
     rotation: function () {
-        var move = (Moves.find({activity_id: 1, team: 2, turn: turn }).fetch())[0];
-        if(typeof move === 'undefined') return 0;
-        return move.rotation;
+        var shoot = (CurrentShoots.find("2").fetch())[0];
+        if(typeof shoot === 'undefined') return [0,0];
+        return shoot.rotation;
     }
 });
 
@@ -138,17 +138,17 @@ Template.team3.helpers({
 
 Template.team3.helpers({
     translation: function () {
-        var move = (Moves.find({activity_id: 1, team: 3, turn: turn }).fetch())[0];
-        if(typeof move === 'undefined') return [0,0];
-        return move.translation;
+        var shoot = (CurrentShoots.find("3").fetch())[0];
+        if(typeof shoot === 'undefined') return [0,0];
+        return shoot.translation;
     }
 });
 
 Template.team3.helpers({
     rotation: function () {
-        var move = (Moves.find({activity_id: 1, team: 3, turn: turn }).fetch())[0];
-        if(typeof move === 'undefined') return 0;
-        return move.rotation;
+        var shoot = (CurrentShoots.find("3").fetch())[0];
+        if(typeof shoot === 'undefined') return [0,0];
+        return shoot.rotation;
     }
 });
 
@@ -184,17 +184,17 @@ Template.team4.helpers({
 
 Template.team4.helpers({
     translation: function () {
-        var move = (Moves.find({activity_id: 1, team: 4, turn: turn }).fetch())[0];
-        if(typeof move === 'undefined') return [0,0];
-        return move.translation;
+        var shoot = (CurrentShoots.find("4").fetch())[0];
+        if(typeof shoot === 'undefined') return [0,0];
+        return shoot.translation;
     }
 });
 
 Template.team4.helpers({
     rotation: function () {
-        var move = (Moves.find({activity_id: 1, team: 4, turn: turn }).fetch())[0];
-        if(typeof move === 'undefined') return 0;
-        return move.rotation;
+        var shoot = (CurrentShoots.find("4").fetch())[0];
+        if(typeof shoot === 'undefined') return [0,0];
+        return shoot.rotation;
     }
 });
 
@@ -231,7 +231,7 @@ var CellStates = {
 var board_dim_x = 201;
 var board_dim_y = 201;
 
-
+var starting_positions = [[-1.0, 1.0], [1.0, 1.0], [1.0, -1.0], [-1.0, -1.0]]; //Where in the board each team starts
 
 //Initial virus board 
 
@@ -1190,6 +1190,31 @@ BattleshipGame.GameShoot.prototype = {
     }, 
 
     startResolve : function(){
+
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+
+
+        //TODO: before we go to the next phase, we take the current shooting values of each team and create a new move with it (it will be resolved in the next phase)
+        for(var i=1; i<=4; i++){
+            var last_move;
+            if(turn>1) last_move = Moves.findOne({ team: i, turn: turn-1 });
+    
+            var shoot = CurrentShoots.findOne(""+i);
+
+            Moves.insert({
+                 activity_id: activity_server.id,
+                 turn: turn,
+                 team: i,
+                 origin: turn>1 ? [last_move.origin[0]+last_move.translation[0], last_move.origin[1]+last_move.translation[1]] : starting_positions[i-1],//Last origin + last translation
+                 polygon: shoot.polygon,
+                 rotation: shoot.rotation,
+                 translation: shoot.translation,
+                 illegal: false
+             });
+
+
+        }
+
     	this.input.keyboard.clearCaptures();
 	    this.state.start('GameResolve');
     },

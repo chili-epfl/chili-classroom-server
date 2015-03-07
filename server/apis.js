@@ -9,8 +9,16 @@
   
 // Anyone can post to the moves collection (e.g., the group lamps)
 // Add access points for `GET`, `POST`, `PUT`, `DELETE` at /api/moves
-//TODO: Introduce logic
 HTTP.publish({collection: Moves}, function(data) {
     // this.userId, this.query, this.params
     return Moves.find({});
+});
+
+
+// Add access points for `POST`, `PUT`, `DELETE`
+//HTTP.publish({collection: CurrentShoots});
+//For now, we fully mount it
+HTTP.publish({collection: CurrentShoots}, function(data) {
+    // this.userId, this.query, this.params
+    return CurrentShoots.find({});
 });
