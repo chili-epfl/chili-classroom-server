@@ -23,7 +23,7 @@ if (Activities.find().count()===0){
 //Coordinate system goes from -1 to 1
 //Rotation of shapes is clockwise, in degrees
 //The order of transformations is calculated as origin --> translation --> rotation
-// if (Moves.find().count() === 0) {
+//  if (Moves.find().count() === 0) {
 
 // 	Moves.insert({
 // 		activity_id: 1,

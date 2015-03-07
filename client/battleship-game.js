@@ -214,8 +214,10 @@ Template.team4.helpers({
 
 //This is the Phaser game object
 var game;
-var teamColorsString = ['#377eb8','#4daf4a','#ff7f00','#984ea3'];
 var teamColorsHex = [0x377eb8,0x4daf4a,0xff7f00,0x984ea3];
+//Darker and brighter variants of the colors, for nicer tessellations
+var teamColorsVariants = [];
+
 var game_active = false;
 
 //This represents the state of the (201x201) game board: 0-empty, 1-virus, -1/-4 team 1-4 polygons
@@ -258,6 +260,15 @@ var this_move_points = [0,0,0,0];//This holds the points achieved by each team t
 
 
 window.onload = function() {
+
+    //We initialize the team color variants
+    for(var i=0; i<4; i++){
+        var teamcolorString = parseColor(teamColorsHex[i]);
+        var variants = [parseColor(ColorLuminance(teamcolorString, -0.2), true),parseColor(ColorLuminance(teamcolorString, -0.1), true),teamColorsHex[i],parseColor(ColorLuminance(teamcolorString, 0.1), true),parseColor(ColorLuminance(teamcolorString, 0.2), true)];
+        teamColorsVariants.push(variants);
+    }
+
+
 
     //game = new Phaser.Game(600, 600, Phaser.AUTO, 'gameboard', { preload: preload, create: create }, true);
     game = new Phaser.Game(600, 600, Phaser.AUTO, 'gameboard', null, true);
@@ -697,9 +708,9 @@ function drawTeamMoves(this_turn){
 
 		for(var i = 0; i < teamMoves.length; i++){
 
-            if(!teamMoves[i].illegal || i==teamMoves.length-1) drawMove(teamMoves[i], teamColorsHex[team-1], 0x000000);
+            if(!teamMoves[i].illegal || i==teamMoves.length-1) drawMove(teamMoves[i], teamColorsVariants[team-1][i%5], 0x000000);
             if(i==teamMoves.length-1){
-                drawOrigin(teamMoves[i], teamColorsHex[team-1], 0x000000);  
+                drawOrigin(teamMoves[i], teamColorsVariants[team-1][i%5], 0x000000);  
             } 
 		}
 
@@ -1508,3 +1519,44 @@ BattleshipGame.GameWin.prototype = {
 
 };
 
+
+//Helper function to vary the color's luminance for tessellations
+function ColorLuminance(hex, lum) {
+
+    // validate hex string
+    hex = String(hex).replace(/[^0-9a-f]/gi, '');
+    if (hex.length < 6) {
+        hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    }
+    lum = lum || 0;
+
+    // convert to decimal and change luminosity
+    var rgb = "#", c, i;
+    for (i = 0; i < 3; i++) {
+        c = parseInt(hex.substr(i*2,2), 16);
+        c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+        rgb += ("00"+c).substr(c.length);
+    }
+
+    return rgb;
+}
+
+//Converts between hex and strings for colors
+function parseColor(color, toNumber) {
+  if (toNumber === true) {
+    if (typeof color === 'number') {
+      return (color | 0); //chop off decimal
+    }
+    if (typeof color === 'string' && color[0] === '#') {
+      color = color.slice(1);
+    }
+    return window.parseInt(color, 16);
+  } else {
+    if (typeof color === 'number') {
+      //make sure our hexadecimal number is padded out
+      color = '#' + ('00000' + (color | 0).toString(16)).substr(-6);
+    }
+
+    return color;
+  }
+};
