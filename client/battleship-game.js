@@ -49,7 +49,7 @@ Template.team1.helpers({
     translation: function () {
         var shoot = (CurrentShoots.find("1").fetch())[0];
         if(typeof shoot === 'undefined') return [0,0];
-        return shoot.translation;
+        return [shoot.translation[0].toFixed(3),shoot.translation[1].toFixed(3)];
     }
 });
 
@@ -94,7 +94,7 @@ Template.team2.helpers({
     translation: function () {
         var shoot = (CurrentShoots.find("2").fetch())[0];
         if(typeof shoot === 'undefined') return [0,0];
-        return shoot.translation;
+        return [shoot.translation[0].toFixed(3),shoot.translation[1].toFixed(3)];
     }
 });
 
@@ -140,7 +140,7 @@ Template.team3.helpers({
     translation: function () {
         var shoot = (CurrentShoots.find("3").fetch())[0];
         if(typeof shoot === 'undefined') return [0,0];
-        return shoot.translation;
+        return [shoot.translation[0].toFixed(3),shoot.translation[1].toFixed(3)];
     }
 });
 
@@ -186,7 +186,7 @@ Template.team4.helpers({
     translation: function () {
         var shoot = (CurrentShoots.find("4").fetch())[0];
         if(typeof shoot === 'undefined') return [0,0];
-        return shoot.translation;
+        return [shoot.translation[0].toFixed(3),shoot.translation[1].toFixed(3)];
     }
 });
 
