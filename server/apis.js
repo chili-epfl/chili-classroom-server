@@ -1,7 +1,9 @@
 
 // For now, the only one that can modify the activity state is the web-based game of the teacher 
 //(from the ReST api only `GET`) at /activities
-  HTTP.publish({name: 'activities'}, function(data) {
+//  HTTP.publish({name: 'activities'}, function(data) {
+//Full mount of activities at /api/activities
+  HTTP.publish({collection: Activities}, function(data) {
     // this.userId, this.query, this.params
     return Activities.find({});
   });
