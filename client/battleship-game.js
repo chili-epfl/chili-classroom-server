@@ -559,7 +559,7 @@ function calculateTeamMoves(board, this_turn){
 
         //We get the last move 
         if(teamMoves.length != this_turn){
-            console.log("Something strange happened. There are less moves than turns!");
+            console.log("Something strange happened. There are less (or more) moves than turns!");
             return board;
         }else{
             //TODO: check for overlapping polygons in this turn 
@@ -595,7 +595,7 @@ function getTeamCellState(team){
 //returns a false saying whether the movement was valid (false), or the new board after this move
 function calculateMove(board, move){
     //If we have no polygon, we calculate no move! return the same board
-    if(move.polygon.size==0) return board;
+    if(move.polygon.length==0) return board;
 
     //We calculate this moves' polygon, in game coordinates (-1...1)
     //We calculate the origin of the polygon to draw (with the translation parameter), in game coordinates (-1,1)
@@ -744,7 +744,7 @@ function drawOrigin(move, fillcolor, linecolor){
 function drawMove(move, fillcolor, linecolor){
 
     //If we have no polygon, we draw no move! return the same board
-    if(move.polygon.size==0) return board;
+    if(move.polygon.length==0) return board;
 
 
     var graphics = game.add.graphics();
