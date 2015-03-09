@@ -61,6 +61,8 @@ Template.team1.helpers({
     }
 });
 
+
+
 Template.team1.helpers({
     showMove: function () {
         var activity_server = (Activities.find({ id : 1 }).fetch())[0];
@@ -105,6 +107,7 @@ Template.team2.helpers({
         return shoot.rotation;
     }
 });
+
 
 Template.team2.helpers({
     showMove: function () {
@@ -152,6 +155,7 @@ Template.team3.helpers({
     }
 });
 
+
 Template.team3.helpers({
     showMove: function () {
         var activity_server = (Activities.find({ id : 1 }).fetch())[0];
@@ -198,6 +202,7 @@ Template.team4.helpers({
     }
 });
 
+
 Template.team4.helpers({
     showMove: function () {
         var activity_server = (Activities.find({ id : 1 }).fetch())[0];
@@ -243,7 +248,7 @@ var starting_positions = [[-1.0, 1.0], [1.0, 1.0], [1.0, -1.0], [-1.0, -1.0]]; /
 //var resistance = 0.5;
 //var range = 1;
 // -- these values start small, double each turn and lead to complete invasion in 20 turns
-var initial_virus_prob = 0.003;
+var initial_virus_prob = 0.002;
 var virulence = 0.9;
 var resistance = 0.05;
 var range = 2;
@@ -589,7 +594,8 @@ function getTeamCellState(team){
 //and mark the territory of this team
 //returns a false saying whether the movement was valid (false), or the new board after this move
 function calculateMove(board, move){
-
+    //If we have no polygon, we calculate no move! return the same board
+    if(move.polygon.size==0) return board;
 
     //We calculate this moves' polygon, in game coordinates (-1...1)
     //We calculate the origin of the polygon to draw (with the translation parameter), in game coordinates (-1,1)
@@ -737,6 +743,10 @@ function drawOrigin(move, fillcolor, linecolor){
 //Draws a team move (basically, a polygon, using the fill color and line color specified)
 function drawMove(move, fillcolor, linecolor){
 
+    //If we have no polygon, we draw no move! return the same board
+    if(move.polygon.size==0) return board;
+
+
     var graphics = game.add.graphics();
 
     if(!move.illegal){//Coloring for legal moves, with the team color
@@ -849,9 +859,6 @@ BattleshipGame.MainMenu.prototype = {
  
     create : function(){ 
 
-        //We get the activity state from the classroom server
-        //var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
-        //For some reason, this will not find anything! we initialize in the first new turn, then
 
 	    var baddie = this.add.sprite(this.world.centerX, this.world.centerY-50, 'virus-big');
 	    baddie.anchor.setTo(0.5, 0.5);
@@ -874,6 +881,7 @@ BattleshipGame.MainMenu.prototype = {
     }, 
 
     startGame : function(){
+
     	this.input.keyboard.clearCaptures();
 	    this.state.start('GameNewTurn');
     }
@@ -923,6 +931,10 @@ BattleshipGame.GameNewTurn.prototype = {
  
 	 	//If it's a new game, initialization of the game board and other variables
 	 	if(!game_active){
+
+            //We store the previous activity in the activities log
+            logActivity(activity_server);
+            logInitializeMoves();
 
             //We initialize the activity server with the current state
             Activities.update(activity_server._id, {$set: {
@@ -988,6 +1000,10 @@ BattleshipGame.GameNewTurn.prototype = {
 	    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startAnalysis, this);
 
+
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+        logActivity(activity_server);
+
         //We update the activity server with the current state
         Activities.update(activity_server._id, {$set: {
                                         type: 'battleship-collab',
@@ -1023,6 +1039,28 @@ BattleshipGame.GameNewTurn.prototype = {
     }
 };
 
+
+function logActivity(activity){
+            var activityToLog = JSON.parse(JSON.stringify(activity));
+            delete activityToLog._id;//So that an unique one is generated
+            activityToLog.timestamp = new Date().getTime();
+            ActivitiesLog.insert(activityToLog);
+}
+
+function logInitializeMoves(){
+
+    var movelog = {};
+    //We take the whole collection of moves
+    movelog.moves = Moves.find().fetch();
+
+    //We add a couple of fields more
+    movelog.timestamp = new Date().getTime();
+
+    //We insert it in the logs
+    MovesLog.insert(movelog);
+    //We delete the moves collection
+    Meteor.call('removeAllMoves');
+}
 
 
 //Analysis phase, in which the board is darkened and students have time to calculate their next move
@@ -1080,6 +1118,10 @@ BattleshipGame.GameAnalysis.prototype = {
 	 	//We add the key listener to pass to the next phase
 	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startShoot, this);
+
+
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+        logActivity(activity_server);
 
         //We update the activity server with the current state
         Activities.update(activity_server._id, {$set: {
@@ -1174,6 +1216,8 @@ BattleshipGame.GameShoot.prototype = {
 	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startResolve, this);
 
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+        logActivity(activity_server);
 
         //We update the activity server with the current state
         Activities.update(activity_server._id, {$set: {
@@ -1205,7 +1249,7 @@ BattleshipGame.GameShoot.prototype = {
         var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
 
 
-        //TODO: before we go to the next phase, we take the current shooting values of each team and create a new move with it (it will be resolved in the next phase)
+        //before we go to the next phase, we take the current shooting values of each team and create a new move with it (it will be resolved in the next phase)
         for(var i=1; i<=4; i++){
             var last_move;
             if(turn>1) last_move = Moves.findOne({ team: i, turn: turn-1 });
@@ -1295,6 +1339,9 @@ BattleshipGame.GameResolve.prototype = {
 	 	//We add the key listener to pass to the next phase
 	    keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
     	keyN.onDown.add(this.startNext, this);
+
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+        logActivity(activity_server);
 
         //We update the activity server with the current state
         Activities.update(activity_server._id, {$set: {
@@ -1394,6 +1441,9 @@ BattleshipGame.GameOver.prototype = {
         keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
         keyN.onDown.add(this.startMenu, this);
 
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+        logActivity(activity_server);
+
         //We update the activity server with the current state
         Activities.update(activity_server._id, {$set: {
                                         type: 'battleship-collab',
@@ -1486,6 +1536,9 @@ BattleshipGame.GameWin.prototype = {
         //We add the key listener to pass to the next phase
         keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
         keyN.onDown.add(this.startMenu, this);
+
+        var activity_server = ((Activities.find({ id : 1 }).fetch())[0]);
+        logActivity(activity_server);
 
         //We update the activity server with the current state
         Activities.update(activity_server._id, {$set: {
