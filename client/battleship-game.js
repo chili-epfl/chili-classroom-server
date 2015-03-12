@@ -726,6 +726,9 @@ function drawTeamMoves(this_turn){
 }
 
 function drawOrigin(move, fillcolor, linecolor){
+
+    if(!move.origin || !move.translation) return;
+
     var radius_origin = 5;//radius in pixels of the origin marker
 
     var graphics = game.add.graphics();
@@ -744,7 +747,7 @@ function drawOrigin(move, fillcolor, linecolor){
 function drawMove(move, fillcolor, linecolor){
 
     //If we have no polygon, we draw no move! return the same board
-    if(move.polygon.length==0) return board;
+    if(move.polygon.length==0) return;
 
 
     var graphics = game.add.graphics();
