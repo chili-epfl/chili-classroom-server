@@ -716,7 +716,7 @@ function drawTeamMoves(this_turn){
 
             if(!teamMoves[i].illegal || i==teamMoves.length-1) drawMove(teamMoves[i], teamColorsVariants[team-1][i%5], 0x000000);
             if(i==teamMoves.length-1){
-                drawOrigin(teamMoves[i], teamColorsVariants[team-1][0], 0xFFFF00);  
+                drawOrigin(teamMoves[i], teamColorsVariants[team-1][0], 0xDDDD00);  
             } 
 		}
 
@@ -1020,6 +1020,18 @@ BattleshipGame.GameNewTurn.prototype = {
                                             }
                                         }
                                     });
+
+        //We reset the shooting values, to the same polygon and 0s trans/rot, just in case
+        for(var i=1; i<=4; i++){
+            var shoot = CurrentShoots.findOne(""+i);
+            CurrentShoots.update(""+i, {$set: {
+                    translation: [0.0,0.0],
+                    polygon: shoot.polygon,
+                    rotation: 0
+                }
+            });
+        }
+
 
     }, 
  
