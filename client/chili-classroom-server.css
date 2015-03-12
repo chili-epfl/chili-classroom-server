@@ -1,5 +1,14 @@
 /* CSS declarations go here */
 
+p {
+     font-size: 110%;
+}
+
+.values {
+     font-size: 140%;
+     font-weight: bold;
+}
+
 /* Elements in the four corners i.e. team information */
 #topleft{
      position:absolute;

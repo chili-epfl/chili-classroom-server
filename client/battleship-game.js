@@ -248,7 +248,7 @@ var starting_positions = [[-1.0, 1.0], [1.0, 1.0], [1.0, -1.0], [-1.0, -1.0]]; /
 //var resistance = 0.5;
 //var range = 1;
 // -- these values start small, double each turn and lead to complete invasion in 20 turns
-var initial_virus_prob = 0.002;
+var initial_virus_prob = 0.01;
 var virulence = 0.9;
 var resistance = 0.05;
 var range = 2;
@@ -716,7 +716,7 @@ function drawTeamMoves(this_turn){
 
             if(!teamMoves[i].illegal || i==teamMoves.length-1) drawMove(teamMoves[i], teamColorsVariants[team-1][i%5], 0x000000);
             if(i==teamMoves.length-1){
-                drawOrigin(teamMoves[i], teamColorsVariants[team-1][i%5], 0x000000);  
+                drawOrigin(teamMoves[i], teamColorsVariants[team-1][0], 0xDDDD00);  
             } 
 		}
 
@@ -729,11 +729,11 @@ function drawOrigin(move, fillcolor, linecolor){
 
     if(!move.origin || !move.translation) return;
 
-    var radius_origin = 5;//radius in pixels of the origin marker
+    var radius_origin = 20;//radius in pixels of the origin marker
 
     var graphics = game.add.graphics();
     graphics.beginFill(fillcolor);
-    graphics.lineStyle(2, linecolor, 1);
+    graphics.lineStyle(4, linecolor, 1);
 
     //We calculate the origin of the polygon to draw (with the translation parameter), in game coordinates (-1,1)
     var newOrigin = [(move.origin)[0]+(move.translation)[0],(move.origin)[1]+(move.translation)[1]];
@@ -1023,6 +1023,18 @@ BattleshipGame.GameNewTurn.prototype = {
                                             }
                                         }
                                     });
+
+        //We reset the shooting values, to the same polygon and 0s trans/rot, just in case
+        for(var i=1; i<=4; i++){
+            var shoot = CurrentShoots.findOne(""+i);
+            CurrentShoots.update(""+i, {$set: {
+                    translation: [0.0,0.0],
+                    polygon: shoot.polygon,
+                    rotation: 0
+                }
+            });
+        }
+
 
     }, 
  

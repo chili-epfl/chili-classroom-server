@@ -37,8 +37,8 @@
 <template name="virus">
 	{{#if showBlock}}
 		<h1>Virus Stats</h1>
-  <p>There are currently {{counter}} virus cells.</p>
-  <p>There are {{proportion}} virus cells per empty cell<br/>(if we reach 10, the game will be over!).</p>
+  <p>There are currently <span class="values">{{counter}}</span> virus cells.</p>
+  <p>There are <span class="values">{{proportion}}</span> virus cells per empty cell<br/>(if we reach 10, the game will be over!).</p>
 	{{/if}}
 </template>
 
@@ -48,8 +48,8 @@
 
   <p>Score: {{team1_points}}</p>
 		{{#if showMove}}
-		  <p>Translation: {{translation}}</p>
-		  <p>Rotation: {{rotation}} deg.</p>
+		  <p>Translation: <span class="values">({{translation}})</span></p>
+		  <p>Rotation: <span class="values">{{rotation}} deg.</span></p>
 		{{/if}}
 	{{/if}}
 </template>
@@ -60,8 +60,8 @@
 
   <p>Score: {{team2_points}}</p>
 	{{#if showMove}}
-	  <p>Translation: {{translation}}</p>
-	  <p>Rotation: {{rotation}} deg.</p>
+	  <p>Translation: <span class="values">({{translation}})</span></p>
+	  <p>Rotation: <span class="values">{{rotation}} deg.</span></p>
 	{{/if}}
 	{{/if}}
 </template>
@@ -72,8 +72,8 @@
 
   <p>Score: {{team3_points}}</p>
 	{{#if showMove}}
-	  <p>Translation: {{translation}}</p>
-	  <p>Rotation: {{rotation}} deg.</p>
+	  <p>Translation: <span class="values">({{translation}})</span></p>
+	  <p>Rotation: <span class="values">{{rotation}} deg.</span></p>
 	{{/if}}
 	{{/if}}
 </template>
@@ -84,8 +84,8 @@
 
   <p>Score: {{team4_points}}</p>
 	{{#if showMove}}
-	  <p>Translation: {{translation}}</p>
-	  <p>Rotation: {{rotation}} deg.</p>
+	  <p>Translation: <span class="values">({{translation}})</span></p>
+	  <p>Rotation: <span class="values">{{rotation}} deg.</span></p>
 	{{/if}}
 	{{/if}}
 </template>
