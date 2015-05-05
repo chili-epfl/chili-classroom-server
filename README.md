@@ -1,9 +1,9 @@
 # chili-classroom-server
 
-This is an implementation of a (web-based) classroom server for the "Tessellated Battleship" game (a game about fractions, geometry and coordinate systems). It is implemented using [Meteor](https://www.meteor.com/), and it is loosely based on the example of [the meteor classroom](https://github.com/lprisan/meteor-classroom) initial implementation by [Luis P. Prieto](https://github.com/lprisan).
+This is an implementation of a (web-based) classroom server for the "Polygon Football" game (a game about geometry and coordinate systems). It is implemented using [Meteor](https://www.meteor.com/), and it is loosely based on the example of [the meteor classroom](https://github.com/lprisan/meteor-classroom) initial implementation by [Luis P. Prieto](https://github.com/lprisan).
 
 # Features
-The current prototype concentrates on having a **reactive visualization** of the classroom-level activity (a collaborative variant of [the battleship board game](http://en.wikipedia.org/wiki/Battleship_%28game%29)).
+The current prototype concentrates on having a **reactive visualization** of the classroom-level activity (a collaborative variant of [the battleship board game](http://en.wikipedia.org/wiki/Battleship_%28game%29) mixed with an air hockey table game).
 
 http://localhost:3000/
 
