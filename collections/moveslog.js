@@ -1,1 +1,0 @@
-MovesLog = new Meteor.Collection('moveslog');

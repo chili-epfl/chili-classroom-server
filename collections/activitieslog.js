@@ -1,1 +1,0 @@
-ActivitiesLog = new Meteor.Collection('activitieslog');
