@@ -6,20 +6,64 @@
 </body>
 
 <template name="Home">
-  <h1>{{title}}</h1>
-
-  {{> hello}}
+	<div class="deadcenter">
+	  <h1>{{title}}</h1>
+	  <p>Cliquez <a href='/new'>ici</a> ou tapez 'n' pour jouer</p>
+	</div>
 </template>
 
 <template name="simple">
-  <h1>{{title}}</h1>
+  <h1 id="bigsimpletitle" class="deadcenter">{{title}}</h1>
 </template>
 
-<template name="hello">
-  <button>Click Me</button>
-  <p>You've pressed the button {{counter}} times.</p>
-</template>
 
 <template name="demo">
 	<div id="gameDemoContainer" class="gameBoard"></div>
+</template>
+
+
+<template name="game">
+	<!--div id="topcenter">
+		<h1>{{title}}</h1>
+	</div-->
+
+	<div id="team1">
+		{{> team1}}
+	</div>
+
+	<div id="team2">
+		{{> team2}}
+	</div>
+
+	<div id="team3">
+		{{> team3}}
+	</div>
+
+	<div id="team4">
+		{{> team4}}
+	</div>
+
+
+	<div id="gameContainer" class="gameBoard"></div>
+</template>
+
+
+<template name="team1">
+	<h3>Équipe 1</h3>
+  <p>Score: {{team1_points}}</p>
+</template>
+
+<template name="team2">
+	<h3>Équipe 2</h3>
+  <p>Score: {{team2_points}}</p>
+</template>
+
+<template name="team3">
+	<h3>Équipe 3</h3>
+  <p>Score: {{team3_points}}</p>
+</template>
+
+<template name="team4">
+	<h3>Équipe 4</h3>
+  <p>Score: {{team4_points}}</p>
 </template>
