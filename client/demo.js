@@ -8,6 +8,9 @@
 
       var ball;
       var polygon1;
+      var polygon2;
+      var polygon3;
+      var polygon4;
 
       function preload () {
 

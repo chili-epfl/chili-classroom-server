@@ -66,46 +66,6 @@
      padding: 10px;
 }*/
 
-#team1{
-     position:fixed;
-     top:0;
-     left: 50%;
-	 text-align: center;
-     color: #377eb8;
-     padding: 10px;
-     transform: translate(-50%, 0);
-}
-
-#team2{
-     position:fixed;
-     top:50%;
-     right:0;
-     color: #4daf4a;
-     text-align: right;
-     padding: 10px;
-     transform: translate(0,-50%);
-}
-
-#team4{
-     position:fixed;
-     top:50%;
-     left:0;
-     color: #984ea3;
-     text-align: left;
-     padding: 10px;
-     transform: translate(0,-50%);
-}
-
-#team3{
-     position:fixed;
-     bottom:0;
-	 text-align: center;
-	 left: 50%;
-     color: #ff7f00;
-     padding: 10px;
-     transform: translate(-50%, 0);
-}
-
 /*#bottomcenter{
      bottom:0;
      color: #e41a1c;
@@ -123,3 +83,46 @@
 	 text-align: center;
 	 width: 70%;
 }*/
+
+
+
+#team1{
+     position:fixed;
+     top:0;
+     left: 50%;
+	 text-align: center;
+     color: #377eb8;
+     padding: 5px;
+     transform: translate(-50%, 0);
+}
+
+#team2{
+     position:fixed;
+     top:50%;
+     right:0;
+     color: #4daf4a;
+     text-align: right;
+     padding: 5px;
+     transform: translate(0,-50%);
+}
+
+#team4{
+     position:fixed;
+     top:50%;
+     left:0;
+     color: #984ea3;
+     text-align: left;
+     padding: 5px;
+     transform: translate(0,-50%);
+}
+
+#team3{
+     position:fixed;
+     bottom:0;
+	 text-align: center;
+	 left: 50%;
+     color: #ff7f00;
+     padding: 5px;
+     transform: translate(-50%, 0);
+}
+
