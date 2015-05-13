@@ -178,6 +178,7 @@ Template.game.rendered = function() {
 		  
 		  drawGrid();
 
+		  //((Activities.find({ id : 1 }).fetch())[0]);
 
 		    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
 	    	keyN.onDown.add(this.startGame, this);
@@ -262,6 +263,8 @@ Template.game.rendered = function() {
 
 		    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
 	    	keyN.onDown.add(this.startResolution, this);
+
+	    	updateServerActivity(this.state.current,turn);
 
 	    }, 
 	 
@@ -366,6 +369,8 @@ Template.game.rendered = function() {
 
 		    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
 	    	keyN.onDown.add(this.startShooting, this);
+
+	    	updateServerActivity(this.state.current,turn);
 
 	    }, 
 	 
@@ -486,6 +491,7 @@ Template.game.rendered = function() {
 			// This phase goes on until goal is reached
 		    // var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
 	    	// keyN.onDown.add(this.startShooting, this);
+	    	updateServerActivity(this.state.current,turn);
 
 	    }, 
 	 
@@ -563,6 +569,32 @@ Template.game.rendered = function() {
 
 
 }
+
+
+function updateServerActivity(phase,turn){
+
+	var active = (phase=="NewTurn" ? true : false);
+
+    var activity = {
+  		_id:"1",
+		id: 1,
+		title: 'Polygone Football',
+		type: 'polyfut',
+		current_state: {
+			active: active,
+			turn: turn,
+			phase: phase,
+			team1_points: Session.get('team1_points'),
+			team2_points: Session.get('team2_points'),
+			team3_points: Session.get('team3_points'),
+			team4_points: Session.get('team4_points')
+		}
+	};
+
+	Meteor.call('insertActivity',activity);
+
+}
+
 
 
 function updateTeamPoints(receivingTeam){
