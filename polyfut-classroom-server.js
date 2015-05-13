@@ -69,7 +69,7 @@ Router.route('/new', {
   // render the Home template with a custom data context, waiting for some collection subscriptions?
   //Apparently, not needed this waiting
   	 waitOn : function () {
-     		return Meteor.subscribe('activities');
+     		return [Meteor.subscribe('activities'),Meteor.subscribe('currentshoots'),Meteor.subscribe('moves')];
   		},
   	action : function() {
   		if(this.ready()){

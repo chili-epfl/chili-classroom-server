@@ -315,6 +315,11 @@ Template.game.rendered = function() {
 	 
 	    create : function(){ 
 
+	    	//We freeze the shot
+    	    Meteor.call('freezeShoot',turn);
+
+
+
 	    	//Take initial coordinates and speed from the previous phase, and draw them
 		  var ball = this.add.sprite(coordsToPixels(this.world.width,this.world.height,ballInitialX,ballInitialY).x,
 		  	coordsToPixels(this.world.width,this.world.height,ballInitialX,ballInitialY).y,

@@ -11,6 +11,7 @@
   
 // Anyone can post to the moves collection (e.g., the group lamps)
 // Add access points for `GET`, `POST`, `PUT`, `DELETE` at /api/moves
+//Access to the moves database not needed for now
 HTTP.publish({collection: Moves}, function(data) {
     // this.userId, this.query, this.params
     return Moves.find({});
