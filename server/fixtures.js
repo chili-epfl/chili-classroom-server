@@ -24,18 +24,18 @@ if (Activities.find().count()===0){
 //Coordinate system goes from -1 to 1
 //Rotation of shapes is clockwise, in degrees
 //The order of transformations is calculated as origin --> translation --> rotation
-//  if (Moves.find().count() === 0) {
+ //  if (Moves.find().count() === 0) {
 
-// 	Moves.insert({
-// 		activity_id: 1,
-// 		turn: 1,
-// 		team: 1,
-// 		origin: [-1,1],
-// 		polygon: [[0,0],[0.333,0],[0.533,0.2],[0.2,0.2]],
-// 		rotation: 90,
-// 		translation: [0,0],
-// 		illegal: false
-// 	});
+	// Moves.insert({
+	// 	activity_id: 1,
+	// 	turn: 1,
+	// 	team: 1,
+	// 	origin: [-1,1],
+	// 	polygon: [[0,0],[0.333,0],[0.533,0.2],[0.2,0.2]],
+	// 	rotation: 90,
+	// 	translation: [0,0],
+	// 	illegal: false
+	// });
 // 	Moves.insert({
 // 		activity_id: 1,
 // 		turn: 1,
@@ -121,28 +121,29 @@ if (Activities.find().count()===0){
 // }
 
 
-if (CurrentShoots.find().count()===0){
+ if (CurrentShoots.find().count()===0){
 	CurrentShoots.insert({
 		_id: "1",//This is basically the team id
 		translation: [0.0,0.0],
 		polygon: [[0,0],[0.333,0],[0.533,0.2],[0.2,0.2]],
 		rotation: 90
 	});
-	CurrentShoots.insert({
-		_id: "2",//This is basically the team id
-		translation: [0.0,0.0],
-		polygon: [[0,0],[0.166,0],[0.25,0.144],[0.166,0.288],[0,0.288],[-0.083,0.144]],
-		rotation: 180
-	});
-	CurrentShoots.insert({
-		_id: "3",//This is basically the team id
-		translation: [0.0,0.0],
-		polygon: [[0,0],[0.25,0],[0.25,0.25],[0,0.25]],
-		rotation: 270
-	});
-	CurrentShoots.insert({
-		_id: "4",//This is basically the team id
-		translation: [0.0,0.0],
-		polygon: [[0,0],[0.5,0],[0.6,0.125],[0.4,0.25]],
-		rotation: 0
-	});}
+// 	CurrentShoots.insert({
+// 		_id: "2",//This is basically the team id
+// 		translation: [0.0,0.0],
+// 		polygon: [[0,0],[0.166,0],[0.25,0.144],[0.166,0.288],[0,0.288],[-0.083,0.144]],
+// 		rotation: 180
+// 	});
+// 	CurrentShoots.insert({
+// 		_id: "3",//This is basically the team id
+// 		translation: [0.0,0.0],
+// 		polygon: [[0,0],[0.25,0],[0.25,0.25],[0,0.25]],
+// 		rotation: 270
+// 	});
+// 	CurrentShoots.insert({
+// 		_id: "4",//This is basically the team id
+// 		translation: [0.0,0.0],
+// 		polygon: [[0,0],[0.5,0],[0.6,0.125],[0.4,0.25]],
+// 		rotation: 0
+// 	});
+}

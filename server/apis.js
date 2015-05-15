@@ -32,3 +32,9 @@ HTTP.publish({collection: CurrentShoots}, function(data) {
     // this.userId, this.query, this.params
     return ActivitiesLog.find({});
   });
+
+// Add access points for `GET`
+  HTTP.publish({name: 'moveslog'}, function(data) {
+    // this.userId, this.query, this.params
+    return MovesLog.find({});
+  });
