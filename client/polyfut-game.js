@@ -431,25 +431,25 @@ Template.game.rendered = function() {
 			    var radius_origin = 20;//radius in pixels of the origin marker
 			    graphics.beginFill(0x000000);
 			    graphics.lineStyle(4, 0x000000, 1);
-			    var originPix = coordsToPixelsArray(this.world.width, this.world.width, (move.translation)[0] * 10,(move.translation)[1] * 10);
+			    var originPix = coordsToPixelsArray(this.world.width, this.world.width, (move.translation)[0],(move.translation)[1]);
 			    graphics.drawCircle(originPix[0], originPix[1], radius_origin);
 
 			    //We draw the polygon itself, rotated/translated
 		        graphics.beginFill(teamColorsHex[move.team-1],0.8);
 		        graphics.lineStyle(2, 0x000000, 1);
 			    //Transform (rotate the polygon vertices), in -10,10 scale from the original -1,1
-			    var newPolygon = rotatePoints(arrayMult(move.polygon,10), move.rotation);
+			    var newPolygon = rotatePoints(move.polygon, move.rotation);
 			    //We draw the polygon
 			    graphics.moveTo(originPix[0],originPix[1]);
 			    for (var j = 0; j < newPolygon.length; j++){
 			        var vertex = newPolygon[j];//The vertex, rotated but centered on 0,0 with scale -10,10
-			        var transVertex = arraySum(vertex,arrayMult(move.translation,10));//The vertex, rotated and translated
+			        var transVertex = arraySum(vertex,move.translation);//The vertex, rotated and translated
 
 			        var vertexPix = coordsToPixelsArray(this.world.width, this.world.width, transVertex[0], transVertex[1]);
 			        graphics.lineTo(vertexPix[0],vertexPix[1]);
 			    } 
 			    //We return to the first vertex, to close the polygon
-		        var transVertex = arraySum(newPolygon[0],arrayMult(move.translation,10));//The vertex, rotated and translated
+		        var transVertex = arraySum(newPolygon[0],move.translation);//The vertex, rotated and translated
 		        var vertexPix = coordsToPixelsArray(this.world.width, this.world.width, transVertex[0], transVertex[1]);
 		        graphics.lineTo(vertexPix[0],vertexPix[1]);
 			    graphics.endFill();
@@ -612,25 +612,25 @@ Template.game.rendered = function() {
 			    var radius_origin = 20;//radius in pixels of the origin marker
 			    graphics.beginFill(0x000000);
 			    graphics.lineStyle(4, 0x000000, 1);
-			    var originPix = coordsToPixelsArray(this.world.width, this.world.height, (move.translation)[0] * 10,(move.translation)[1] * 10);
+			    var originPix = coordsToPixelsArray(this.world.width, this.world.height, (move.translation)[0],(move.translation)[1]);
 			    graphics.drawCircle(originPix[0], originPix[1], radius_origin);
 
 			    //We draw the polygon itself, rotated/translated
 		        graphics.beginFill(teamColorsHex[move.team-1],0.8);
 		        graphics.lineStyle(2, 0x000000, 1);
 			    //Transform (rotate the polygon vertices), in -10,10 scale from the original -1,1
-			    var newPolygon = rotatePoints(arrayMult(move.polygon,10), move.rotation);
+			    var newPolygon = rotatePoints(move.polygon, move.rotation);
 			    //We draw the polygon
 			    graphics.moveTo(originPix[0],originPix[1]);
 			    for (var j = 0; j < newPolygon.length; j++){
 			        var vertex = newPolygon[j];//The vertex, rotated but centered on 0,0 with scale -10,10
-			        var transVertex = arraySum(vertex,arrayMult(move.translation,10));//The vertex, rotated and translated
+			        var transVertex = arraySum(vertex,move.translation);//The vertex, rotated and translated
 
 			        var vertexPix = coordsToPixelsArray(this.world.width, this.world.height, transVertex[0], transVertex[1]);
 			        graphics.lineTo(vertexPix[0],vertexPix[1]);
 			    } 
 			    //We return to the first vertex, to close the polygon
-		        var transVertex = arraySum(newPolygon[0],arrayMult(move.translation,10));//The vertex, rotated and translated
+		        var transVertex = arraySum(newPolygon[0],move.translation);//The vertex, rotated and translated
 		        var vertexPix = coordsToPixelsArray(this.world.width, this.world.height, transVertex[0], transVertex[1]);
 		        graphics.lineTo(vertexPix[0],vertexPix[1]);
 			    graphics.endFill();
