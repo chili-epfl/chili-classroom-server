@@ -24,6 +24,17 @@ Template.team4.helpers({
 });
 
 
+//We load the demo animation when its template is rendered
+Template.Home.rendered = function() {
+	$(document).keypress(function(e) {
+	  if(e.which == 78 || e.which == 110) {
+	    // N pressed
+	    window.location.href = "/new";
+  		}
+	});
+}
+
+
 
 //We load the demo animation when its template is rendered
 Template.game.rendered = function() {
@@ -32,6 +43,8 @@ Template.game.rendered = function() {
        null, true);
 
     game.global = {
+    	doRTShoot: true,
+    	shootRefreshTimestamp: 0,
     	but: false,
     	teambut: 0
     };
@@ -225,6 +238,7 @@ Template.game.rendered = function() {
 	    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
 
 		//Maybe add some variables relevant for this state
+		this.shootGraphics;
 	}; 
 	 
 	PolyfutGame.NewTurn.prototype = { 
@@ -274,9 +288,74 @@ Template.game.rendered = function() {
 	    }, 
 	 
 	    update : function(){ 
-	 		//TODO: Optionally, display here in real time the current state of polygon, rotation and translation, from the database
-		    // your game loop goes here 
+	    	//If activated, we display the current shoot in almost real time
+	    	if(game.global.doRTShoot){
+		 		var timestamp = Date.now();
+		 		var refreshRate = 2*1000;//2 seconds
+		 		if(timestamp - game.global.shootRefreshTimestamp > refreshRate){
+		 			game.global.shootRefreshTimestamp = timestamp;
+		 			if(this.shootGraphics) this.shootGraphics.clear();
+		 			//TODO: Display the currentshoot polygons, but more transparent
+			        var shoots = CurrentShoots.find().fetch();
+          			this.drawShoots(shoots, ballInitialX, ballInitialY);
+
+		 		}
+	    	}
+
+
 	    }, 
+
+	    drawShoots : function(moves, ballx, bally){
+	    	if(moves.length>4){
+	    		console.log("Error! We have more than 4 teams!");
+	    		return;
+	    	}
+		    this.shootGraphics = this.add.graphics();
+	    	// For each team
+	    	for(var i = 0; i < moves.length; i++){
+	    		var move = moves[i];
+
+	    		//We draw the polygon origin circle
+			    var radius_origin = 20;//radius in pixels of the origin marker
+			    this.shootGraphics.beginFill(0x000000,0.5);
+			    this.shootGraphics.lineStyle(4, 0x000000, 0.5);
+			    var originPix = coordsToPixelsArray(this.world.width, this.world.width, (move.translation)[0],(move.translation)[1]);
+			    this.shootGraphics.drawCircle(originPix[0], originPix[1], radius_origin);
+
+			    //We draw the polygon itself, rotated/translated
+			    //Transform (rotate the polygon vertices), in -10,10 scale from the original -1,1
+			    if(move.polygon.length>0){//In case we have no polygon
+				    var newPolygon = rotatePoints(move.polygon, move.rotation);
+
+				    var isIllegalMove = isPolygonNearer(translatePoints(newPolygon,(move.translation)[0],(move.translation)[1]),ballx,bally,3.5);//
+	   		        if(!isIllegalMove){
+	   		        	this.shootGraphics.lineStyle(2, 0x000000, 0.5);	
+				        this.shootGraphics.beginFill(teamColorsHex[move._id-1],0.5);
+	   		        }else{
+	   		        	this.shootGraphics.lineStyle(3, 0xff0000, 0.5);	
+				        this.shootGraphics.beginFill(teamColorsHex[move._id-1],0.2);
+	   		        }
+
+				    //We draw the polygon
+				    this.shootGraphics.moveTo(originPix[0],originPix[1]);
+				    for (var j = 0; j < newPolygon.length; j++){
+				        var vertex = newPolygon[j];//The vertex, rotated but centered on 0,0 with scale -10,10
+				        var transVertex = arraySum(vertex,move.translation);//The vertex, rotated and translated
+
+				        var vertexPix = coordsToPixelsArray(this.world.width, this.world.width, transVertex[0], transVertex[1]);
+				        this.shootGraphics.lineTo(vertexPix[0],vertexPix[1]);
+				    } 
+				    //We return to the first vertex, to close the polygon
+			        var transVertex = arraySum(newPolygon[0],move.translation);//The vertex, rotated and translated
+			        var vertexPix = coordsToPixelsArray(this.world.width, this.world.width, transVertex[0], transVertex[1]);
+			        this.shootGraphics.lineTo(vertexPix[0],vertexPix[1]);
+				    this.shootGraphics.endFill();
+			    }
+
+	    	}
+	    	return;
+	    },
+
 
 	    startResolution : function(){
 
@@ -583,9 +662,9 @@ Template.game.rendered = function() {
 
 
 
-			// This phase goes on until goal is reached
-		    // var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
-	    	// keyN.onDown.add(this.startShooting, this);
+			// This phase goes on until goal is reached, but still keep the N in case the ball gets stuck
+		    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+	    	keyN.onDown.add(this.startNewTurn, this);
 	    	updateServerActivity(this.state.current,turn);
 
 	    }, 
@@ -603,8 +682,6 @@ Template.game.rendered = function() {
 	          	{ font: '16px Arial', fill: '#300' , align: 'center'})
     	      message2.anchor.setTo(0.5,0.5);
 
-		     var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
-	    	 keyN.onDown.add(this.startNewTurn, this);
 		     	
 		    }
 	    }, 
@@ -692,7 +769,7 @@ Template.game.rendered = function() {
 
 
 		    this.state.start('NewTurn');
-	    	//this.input.keyboard.clearCaptures();
+	    	this.input.keyboard.clearCaptures();
 
 	    },
 
