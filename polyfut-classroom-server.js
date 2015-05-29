@@ -41,7 +41,11 @@ Router.route('/simpleactivity/:activitytitle', function () {
 		}
 	};
     Meteor.call('insertActivity',activity);
-    this.render('simple', {data: {title: tit}});
+    var img = this.params.query.image;
+    var hasImg = false;
+    if(img && img.length>0) hasImg=true;
+    console.log("params"+this.params.query+"img "+img+" hasimg"+hasImg);
+    this.render('simple', {data: {title: tit, hasImg: hasImg, img: img}});
 });
 
 Router.route('/demo', function () {

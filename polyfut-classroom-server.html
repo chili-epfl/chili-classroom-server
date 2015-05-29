@@ -13,7 +13,14 @@
 </template>
 
 <template name="simple">
-  <h1 id="bigsimpletitle" class="deadcenter">{{title}}</h1>
+	{{#if hasImg}}
+  	<div id="centerimage" class="deadcenter">
+  		<h1 id="bigsimpletitle" style="text-align: center">{{title}}</h1>
+		<img src="/{{img}}" alt="Activity image" style="width: 400px; height: 400px"/>
+	</div>
+	{{else}}
+	  <h1 id="bigsimpletitle" class="deadcenter">{{title}}</h1>
+	{{/if}}
 </template>
 
 
