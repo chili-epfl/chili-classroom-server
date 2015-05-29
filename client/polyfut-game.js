@@ -251,6 +251,10 @@ Template.game.rendered = function() {
           initialtraj.lineStyle(2, 0x999999, 1);
           initialtraj.lineTo(initialvx,initialvy);
 
+          //We add the illegal move circle
+		  var circlegraph = this.add.graphics(ball.x,ball.y);
+		  circlegraph.lineStyle(1, 0x990000, 0.5);
+		  circlegraph.drawCircle(0,0,7*this.world.width/20);
 
 
 		  drawGrid();
@@ -370,7 +374,7 @@ Template.game.rendered = function() {
 
           //Create the sprites, the corresponding graphics
           var moves = Moves.find().fetch();
-          this.drawMovesGraphicsOnly(moves);
+          this.drawMovesGraphicsOnly(moves, ballInitialX, ballInitialY);
 
           //TODO: Substitute this with the real polygons!!!!
           // polygon1coords = generateRandomCoords(this.world.width, this.world.height);
@@ -417,7 +421,7 @@ Template.game.rendered = function() {
 		    // your game loop goes here 
 	    }, 
 
-	    drawMovesGraphicsOnly : function(moves){
+	    drawMovesGraphicsOnly : function(moves, ballx, bally){
 	    	if(moves.length>4){
 	    		console.log("Error! We have more than 4 teams!");
 	    		return;
@@ -435,10 +439,18 @@ Template.game.rendered = function() {
 			    graphics.drawCircle(originPix[0], originPix[1], radius_origin);
 
 			    //We draw the polygon itself, rotated/translated
-		        graphics.beginFill(teamColorsHex[move.team-1],0.8);
-		        graphics.lineStyle(2, 0x000000, 1);
 			    //Transform (rotate the polygon vertices), in -10,10 scale from the original -1,1
 			    var newPolygon = rotatePoints(move.polygon, move.rotation);
+
+			    var isIllegalMove = isPolygonNearer(translatePoints(newPolygon,(move.translation)[0],(move.translation)[1]),ballx,bally,3.5);//
+   		        if(!isIllegalMove){
+   		        	graphics.lineStyle(2, 0x000000, 1);	
+			        graphics.beginFill(teamColorsHex[move.team-1],0.8);
+   		        }else{
+   		        	graphics.lineStyle(3, 0xff0000, 1);	
+			        graphics.beginFill(teamColorsHex[move.team-1],0.6);
+   		        }
+
 			    //We draw the polygon
 			    graphics.moveTo(originPix[0],originPix[1]);
 			    for (var j = 0; j < newPolygon.length; j++){
@@ -524,7 +536,7 @@ Template.game.rendered = function() {
           //this.physics.p2.onBeginContact.add(checkGoal,ball);
 
           var moves = Moves.find().fetch();
-          var polygonsprites = this.drawMovesSprites(moves);
+          var polygonsprites = this.drawMovesSprites(moves, ballInitialX, ballInitialY);
 
           // Delete this! Random polygons
           // var polygon1 = this.add.sprite(polygon1coords.x, polygon1coords.y);
@@ -597,7 +609,7 @@ Template.game.rendered = function() {
 		    }
 	    }, 
 
-	    drawMovesSprites : function(moves){
+	    drawMovesSprites : function(moves, ballx, bally){
 	    	var polygonsprites = [];
 	    	if(moves.length>4){
 	    		console.log("Error! We have more than 4 teams!");
@@ -615,11 +627,20 @@ Template.game.rendered = function() {
 			    var originPix = coordsToPixelsArray(this.world.width, this.world.height, (move.translation)[0],(move.translation)[1]);
 			    graphics.drawCircle(originPix[0], originPix[1], radius_origin);
 
-			    //We draw the polygon itself, rotated/translated
-		        graphics.beginFill(teamColorsHex[move.team-1],0.8);
-		        graphics.lineStyle(2, 0x000000, 1);
 			    //Transform (rotate the polygon vertices), in -10,10 scale from the original -1,1
 			    var newPolygon = rotatePoints(move.polygon, move.rotation);
+			    
+			    var isIllegalMove = isPolygonNearer(translatePoints(newPolygon,(move.translation)[0],(move.translation)[1]),ballx,bally,3.5);//
+   		        if(!isIllegalMove){
+   		        	graphics.lineStyle(2, 0x000000, 1);	
+			        graphics.beginFill(teamColorsHex[move.team-1],0.8);
+   		        }else{
+   		        	graphics.lineStyle(3, 0xff0000, 1);	
+			        graphics.beginFill(teamColorsHex[move.team-1],0.6);
+   		        }
+
+
+
 			    //We draw the polygon
 			    graphics.moveTo(originPix[0],originPix[1]);
 			    for (var j = 0; j < newPolygon.length; j++){
@@ -635,22 +656,24 @@ Template.game.rendered = function() {
 		        graphics.lineTo(vertexPix[0],vertexPix[1]);
 			    graphics.endFill();
 
-				var polygonsprite = this.add.sprite(originPix[0],originPix[1]);
-          		this.physics.p2.enable(polygonsprite, true);
-          		polygonsprite.body.clearShapes();
-          		//We add the polygon outline, in pixels counting from the origin of the sprite
-          		var newPolygonPix = [];
-			    for (var j = 0; j < newPolygon.length; j++){
-			        var vertex = newPolygon[j];//The vertex, rotated but centered on 0,0 with scale -10,10
-			    	var vertexPix = arraySum(
-			    		coordsToPixelsArray(this.world.width,this.world.height,vertex[0],vertex[1]),
-			    		arrayMult(coordsToPixelsArray(this.world.width,this.world.height,0,0),-1)
-			    		);
-			    	newPolygonPix.push(vertexPix);
-				}          		
-          		polygonsprite.body.addPolygon({},newPolygonPix);
-          		polygonsprite.body.static = true;
-          		polygonsprites.push(polygonsprite);
+			    if(!isIllegalMove){
+					var polygonsprite = this.add.sprite(originPix[0],originPix[1]);
+	          		this.physics.p2.enable(polygonsprite, true);
+	          		polygonsprite.body.clearShapes();
+	          		//We add the polygon outline, in pixels counting from the origin of the sprite
+	          		var newPolygonPix = [];
+				    for (var j = 0; j < newPolygon.length; j++){
+				        var vertex = newPolygon[j];//The vertex, rotated but centered on 0,0 with scale -10,10
+				    	var vertexPix = arraySum(
+				    		coordsToPixelsArray(this.world.width,this.world.height,vertex[0],vertex[1]),
+				    		arrayMult(coordsToPixelsArray(this.world.width,this.world.height,0,0),-1)
+				    		);
+				    	newPolygonPix.push(vertexPix);
+					}          		
+	          		polygonsprite.body.addPolygon({},newPolygonPix);
+	          		polygonsprite.body.static = true;
+	          		polygonsprites.push(polygonsprite);
+			    }
 	    	}
 
 	    	//We also add the ball to the physics engine
@@ -805,6 +828,43 @@ function rotatePoints(arrayCoords, degrees){
 	}
 
 	return newArrayCoords;
+}
+
+//Translates a set of xy points by a certain x and y
+function translatePoints(arrayCoords, transx, transy){
+	var newArrayCoords = [];
+	for (var i = 0; i < arrayCoords.length; i++){
+		var vertex = arrayCoords[i];
+		//we transform the angle to negative, since the formulas suppose counterclockwise rotation
+		var newCoords = [vertex[0] + transx, vertex[1] + transy];
+		newArrayCoords.push(newCoords);
+	}
+
+	return newArrayCoords;
+}
+
+//Translates a set of xy points around the origin, for a number of degrees, clockwise
+function isPolygonNearer(arrayCoords, pointx, pointy, distance){
+	var step = 20;
+	//We iterate over the segments of the polygon
+	for (var i = 0; i < arrayCoords.length; i++){
+		var vertex1 = arrayCoords[i];
+		var vertex2;
+		if(i<arrayCoords.length-1) vertex2 = arrayCoords[i+1];
+		else vertex2 = arrayCoords[0];
+
+		//We generate the series of points along the segment, and calculate the distance to the point
+		for(var j=0;j<=step;j++){
+			var point = [(vertex1[0]*(step-j))/step+(j*vertex2[0]/step),(vertex1[1]*(step-j))/step+(j*vertex2[1]/step)];
+			var dist = Math.sqrt(Math.pow(point[0]-pointx,2) + Math.pow(point[1]-pointy,2));
+			if(dist<distance){
+				return true;
+			}
+		}
+
+	}
+
+	return false;
 }
 
 function toRadians (angle) {
