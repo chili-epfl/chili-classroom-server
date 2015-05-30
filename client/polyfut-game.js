@@ -62,6 +62,7 @@ Template.game.rendered = function() {
 	var PolyfutGame = {};
 
 	var teamColorsHex = [0x377eb8,0x4daf4a,0xff7f00,0x984ea3];
+	var teamColorsNames = ["Bleu","Vert","Orange","Mauve"];
 
     var ballInitialX;//This turn's starting ball coordinates
     var ballInitialY;
@@ -283,6 +284,9 @@ Template.game.rendered = function() {
 		    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
 	    	keyN.onDown.add(this.startResolution, this);
 
+		    var keyQ = this.input.keyboard.addKey(Phaser.Keyboard.Q);
+	    	keyQ.onDown.add(this.endGame, this);
+
 	    	updateServerActivity(this.state.current,turn);
 
 	    }, 
@@ -392,7 +396,16 @@ Template.game.rendered = function() {
 
 	    	this.input.keyboard.clearCaptures();
 		    this.state.start('Resolution');
+	    },
+
+   	    endGame : function(){
+
+	    	this.input.keyboard.clearCaptures();
+		    this.state.start('EndGame');
 	    }
+
+
+
 	};
 
 
@@ -491,6 +504,10 @@ Template.game.rendered = function() {
 		    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
 	    	keyN.onDown.add(this.startShooting, this);
 
+
+		    var keyQ = this.input.keyboard.addKey(Phaser.Keyboard.Q);
+	    	keyQ.onDown.add(this.endGame, this);
+
 	    	updateServerActivity(this.state.current,turn);
 
 	    }, 
@@ -555,6 +572,12 @@ Template.game.rendered = function() {
 
 	    	this.input.keyboard.clearCaptures();
 		    this.state.start('Shoot');
+	    },
+
+	    endGame : function(){
+
+	    	this.input.keyboard.clearCaptures();
+		    this.state.start('EndGame');
 	    }
 
 	};
@@ -667,6 +690,11 @@ Template.game.rendered = function() {
 			// This phase goes on until goal is reached, but still keep the N in case the ball gets stuck
 		    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
 	    	keyN.onDown.add(this.startNewTurn, this);
+
+
+		    var keyQ = this.input.keyboard.addKey(Phaser.Keyboard.Q);
+	    	keyQ.onDown.add(this.endGame, this);
+
 	    	updateServerActivity(this.state.current,turn);
 
 	    }, 
@@ -802,12 +830,113 @@ Template.game.rendered = function() {
 	          game.global.teambut=3;
 	        }
 
+	    },
+
+   	    endGame : function(){
+
+	    	this.input.keyboard.clearCaptures();
+		    this.state.start('EndGame');
 	    }
 
 
 
 
+
 	};
+
+
+/////////////////////////////////////////
+	//Game over phase, where the teams points are displayed 
+	//but this time the ball actually shoots until goal is reached
+	PolyfutGame.EndGame = function(){
+	    //  When a State is added to Phaser it automatically has the following properties set on it, even if they already exist:
+	    this.game;      //  a reference to the currently running game (Phaser.Game)
+	    this.add;       //  used to add sprites, text, groups, etc (Phaser.GameObjectFactory)
+	    this.camera;    //  a reference to the game camera (Phaser.Camera)
+	    this.cache;     //  the game cache (Phaser.Cache)
+	    this.input;     //  the global input manager. You can access this.input.keyboard, this.input.mouse, as well from it. (Phaser.Input)
+	    this.load;      //  for preloading assets (Phaser.Loader)
+	    this.math;      //  lots of useful common math operations (Phaser.Math)
+	    this.sound;     //  the sound manager - add a sound, play one, set-up markers, etc (Phaser.SoundManager)
+	    this.stage;     //  the game stage (Phaser.Stage)
+	    this.time;      //  the clock (Phaser.Time)
+	    this.tweens;    //  the tween manager (Phaser.TweenManager)
+	    this.state;     //  the state manager (Phaser.StateManager)
+	    this.world;     //  the game world (Phaser.World)
+	    this.particles; //  the particle manager (Phaser.Particles)
+	    this.physics;   //  the physics manager (Phaser.Physics)
+	    this.rnd;       //  the repeatable random number generator (Phaser.RandomDataGenerator)
+
+	    //  You can use any of these from any function within this State.
+	    //  But do consider them as being 'reserved words', i.e. don't create a property for your own game called "world" or you'll over-write the world reference.
+
+		//Maybe add some variables relevant for this state
+	}; 
+	 
+	PolyfutGame.EndGame.prototype = { 
+	    preload : function(){ 
+
+	    }, 
+
+	    create : function(){ 
+
+
+			  //Game over message and team points
+		    var text = this.add.text(this.world.centerX, this.world.centerY-this.world.height/3, 
+		    	"C'est fini!" , 
+		    	{ font: '36px Arial', fill: '#300' , align: 'center'});
+		    text.anchor.set(0.5);
+
+		    //TODO: Add team's points with their color, in decreasing order
+		    var leaderboard = [];
+		    for(var i=0; i<4; i++){
+		    	var team = {
+		    		color: teamColorsHex[i],
+		    		name: "Équipe "+teamColorsNames[i],
+		    		points: Session.get('team'+(i+1)+'_points')
+		    	};
+		    	leaderboard.push(team);
+		    }
+
+			// Sort by points high to low
+			leaderboard = leaderboard.sort(sort_by('points', true, parseInt));
+
+			for(var i=0; i<4; i++){
+			    var text = this.add.text(this.world.centerX, this.world.centerY-this.world.height/3+((i+1)*50), 
+			    	leaderboard[i].name + ": " + leaderboard[i].points + " points" , 
+			    	{ font: (32-2*i)+'px Arial', fill: "#"+leaderboard[i].color.toString(16) , align: 'center'});
+			    text.anchor.set(0.5);
+			}
+
+			// This phase goes on until goal is reached, but still keep the N in case the ball gets stuck
+		    var keyN = this.input.keyboard.addKey(Phaser.Keyboard.N);
+	    	keyN.onDown.add(this.startNewGame, this);
+
+	    	
+	    	updateServerActivity(this.state.current,turn);
+
+	    }, 
+	 
+	    update : function(){ 
+	 
+		    // your game loop goes here 
+	    }, 
+
+	    startNewGame : function(){
+
+	    	this.game.global.but=false;
+	    	this.game.global.teambut=0;
+
+		    this.state.start('Initial');
+	    	this.input.keyboard.clearCaptures();
+
+	    }
+
+
+	};
+
+
+
 
 
 	//Attachment of the states above to the game, and starting of the game logic
@@ -978,4 +1107,17 @@ function arrayMult(array , constant){
         else mult.push(array[i]*constant);
     }
     return mult;
+}
+
+var sort_by = function(field, reverse, primer){
+
+   var key = primer ? 
+       function(x) {return primer(x[field])} : 
+       function(x) {return x[field]};
+
+   reverse = !reverse ? 1 : -1;
+
+   return function (a, b) {
+       return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+     } 
 }
