@@ -44,8 +44,29 @@ Router.route('/simpleactivity/:activitytitle', function () {
     var img = this.params.query.image;
     var hasImg = false;
     if(img && img.length>0) hasImg=true;
-    console.log("params"+this.params.query+"img "+img+" hasimg"+hasImg);
+    //console.log("params"+this.params.query+"img "+img+" hasimg"+hasImg);
     this.render('simple', {data: {title: tit, hasImg: hasImg, img: img}});
+});
+
+Router.route('/pause', function () {
+  // render the Home template with a custom data context
+  var activity = {
+  		_id:"1",
+		id: 1,
+		title: 'Pause!',
+		type: 'pause',
+		current_state: {
+			active: false,
+			turn: 0,
+			phase: null,
+			team1_points: 0,
+			team2_points: 0,
+			team3_points: 0,
+			team4_points: 0
+		}
+	};
+    Meteor.call('insertActivity',activity);
+    this.render('pause', {data: {title: 'Pause!'}});
 });
 
 Router.route('/demo', function () {
