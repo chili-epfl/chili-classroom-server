@@ -510,40 +510,42 @@ Template.game.rendered = function() {
 	    	for(var i = 0; i < moves.length; i++){
 	    		var move = moves[i];
 
-	    		//We draw the polygon origin circle
-			    var radius_origin = 20;//radius in pixels of the origin marker
-			    graphics.beginFill(0x000000);
-			    graphics.lineStyle(4, 0x000000, 1);
-			    var originPix = coordsToPixelsArray(this.world.width, this.world.width, (move.translation)[0],(move.translation)[1]);
-			    graphics.drawCircle(originPix[0], originPix[1], radius_origin);
+	    		if(move.polygon && move.polygon.length>0){
+		    		//We draw the polygon origin circle
+				    var radius_origin = 20;//radius in pixels of the origin marker
+				    graphics.beginFill(0x000000);
+				    graphics.lineStyle(4, 0x000000, 1);
+				    var originPix = coordsToPixelsArray(this.world.width, this.world.width, (move.translation)[0],(move.translation)[1]);
+				    graphics.drawCircle(originPix[0], originPix[1], radius_origin);
 
-			    //We draw the polygon itself, rotated/translated
-			    //Transform (rotate the polygon vertices), in -10,10 scale from the original -1,1
-			    var newPolygon = rotatePoints(move.polygon, move.rotation);
+				    //We draw the polygon itself, rotated/translated
+				    //Transform (rotate the polygon vertices), in -10,10 scale from the original -1,1
+				    var newPolygon = rotatePoints(move.polygon, move.rotation);
 
-			    var isIllegalMove = isPolygonNearer(translatePoints(newPolygon,(move.translation)[0],(move.translation)[1]),ballx,bally,3.5);//
-   		        if(!isIllegalMove){
-   		        	graphics.lineStyle(2, 0x000000, 1);	
-			        graphics.beginFill(teamColorsHex[move.team-1],0.8);
-   		        }else{
-   		        	graphics.lineStyle(3, 0xff0000, 1);	
-			        graphics.beginFill(teamColorsHex[move.team-1],0.6);
-   		        }
+				    var isIllegalMove = isPolygonNearer(translatePoints(newPolygon,(move.translation)[0],(move.translation)[1]),ballx,bally,3.5);//
+	   		        if(!isIllegalMove){
+	   		        	graphics.lineStyle(2, 0x000000, 1);	
+				        graphics.beginFill(teamColorsHex[move.team-1],0.8);
+	   		        }else{
+	   		        	graphics.lineStyle(3, 0xff0000, 1);	
+				        graphics.beginFill(teamColorsHex[move.team-1],0.6);
+	   		        }
 
-			    //We draw the polygon
-			    graphics.moveTo(originPix[0],originPix[1]);
-			    for (var j = 0; j < newPolygon.length; j++){
-			        var vertex = newPolygon[j];//The vertex, rotated but centered on 0,0 with scale -10,10
-			        var transVertex = arraySum(vertex,move.translation);//The vertex, rotated and translated
+				    //We draw the polygon
+				    graphics.moveTo(originPix[0],originPix[1]);
+				    for (var j = 0; j < newPolygon.length; j++){
+				        var vertex = newPolygon[j];//The vertex, rotated but centered on 0,0 with scale -10,10
+				        var transVertex = arraySum(vertex,move.translation);//The vertex, rotated and translated
 
+				        var vertexPix = coordsToPixelsArray(this.world.width, this.world.width, transVertex[0], transVertex[1]);
+				        graphics.lineTo(vertexPix[0],vertexPix[1]);
+				    } 
+				    //We return to the first vertex, to close the polygon
+			        var transVertex = arraySum(newPolygon[0],move.translation);//The vertex, rotated and translated
 			        var vertexPix = coordsToPixelsArray(this.world.width, this.world.width, transVertex[0], transVertex[1]);
 			        graphics.lineTo(vertexPix[0],vertexPix[1]);
-			    } 
-			    //We return to the first vertex, to close the polygon
-		        var transVertex = arraySum(newPolygon[0],move.translation);//The vertex, rotated and translated
-		        var vertexPix = coordsToPixelsArray(this.world.width, this.world.width, transVertex[0], transVertex[1]);
-		        graphics.lineTo(vertexPix[0],vertexPix[1]);
-			    graphics.endFill();
+				    graphics.endFill();
+	    		}
 
 	    	}
 	    	return;
@@ -697,60 +699,65 @@ Template.game.rendered = function() {
 	    	for(var i = 0; i < moves.length; i++){
 	    		var move = moves[i];
 
-	    		//We draw the polygon origin circle
-			    var radius_origin = 20;//radius in pixels of the origin marker
-			    graphics.beginFill(0x000000);
-			    graphics.lineStyle(4, 0x000000, 1);
-			    var originPix = coordsToPixelsArray(this.world.width, this.world.height, (move.translation)[0],(move.translation)[1]);
-			    graphics.drawCircle(originPix[0], originPix[1], radius_origin);
+	    		if(move.polygon && move.polygon.length>0){
 
-			    //Transform (rotate the polygon vertices), in -10,10 scale from the original -1,1
-			    var newPolygon = rotatePoints(move.polygon, move.rotation);
-			    
-			    var isIllegalMove = isPolygonNearer(translatePoints(newPolygon,(move.translation)[0],(move.translation)[1]),ballx,bally,3.5);//
-   		        if(!isIllegalMove){
-   		        	graphics.lineStyle(2, 0x000000, 1);	
-			        graphics.beginFill(teamColorsHex[move.team-1],0.8);
-   		        }else{
-   		        	graphics.lineStyle(3, 0xff0000, 1);	
-			        graphics.beginFill(teamColorsHex[move.team-1],0.6);
-   		        }
+		    		//We draw the polygon origin circle
+				    var radius_origin = 20;//radius in pixels of the origin marker
+				    graphics.beginFill(0x000000);
+				    graphics.lineStyle(4, 0x000000, 1);
+				    var originPix = coordsToPixelsArray(this.world.width, this.world.height, (move.translation)[0],(move.translation)[1]);
+				    graphics.drawCircle(originPix[0], originPix[1], radius_origin);
+
+				    //Transform (rotate the polygon vertices), in -10,10 scale from the original -1,1
+				    var newPolygon = rotatePoints(move.polygon, move.rotation);
+				    
+				    var isIllegalMove = isPolygonNearer(translatePoints(newPolygon,(move.translation)[0],(move.translation)[1]),ballx,bally,3.5);//
+	   		        if(!isIllegalMove){
+	   		        	graphics.lineStyle(2, 0x000000, 1);	
+				        graphics.beginFill(teamColorsHex[move.team-1],0.8);
+	   		        }else{
+	   		        	graphics.lineStyle(3, 0xff0000, 1);	
+				        graphics.beginFill(teamColorsHex[move.team-1],0.6);
+	   		        }
 
 
 
-			    //We draw the polygon
-			    graphics.moveTo(originPix[0],originPix[1]);
-			    for (var j = 0; j < newPolygon.length; j++){
-			        var vertex = newPolygon[j];//The vertex, rotated but centered on 0,0 with scale -10,10
-			        var transVertex = arraySum(vertex,move.translation);//The vertex, rotated and translated
-
-			        var vertexPix = coordsToPixelsArray(this.world.width, this.world.height, transVertex[0], transVertex[1]);
-			        graphics.lineTo(vertexPix[0],vertexPix[1]);
-			    } 
-			    //We return to the first vertex, to close the polygon
-		        var transVertex = arraySum(newPolygon[0],move.translation);//The vertex, rotated and translated
-		        var vertexPix = coordsToPixelsArray(this.world.width, this.world.height, transVertex[0], transVertex[1]);
-		        graphics.lineTo(vertexPix[0],vertexPix[1]);
-			    graphics.endFill();
-
-			    if(!isIllegalMove){
-					var polygonsprite = this.add.sprite(originPix[0],originPix[1]);
-	          		this.physics.p2.enable(polygonsprite, true);
-	          		polygonsprite.body.clearShapes();
-	          		//We add the polygon outline, in pixels counting from the origin of the sprite
-	          		var newPolygonPix = [];
+				    //We draw the polygon
+				    graphics.moveTo(originPix[0],originPix[1]);
 				    for (var j = 0; j < newPolygon.length; j++){
 				        var vertex = newPolygon[j];//The vertex, rotated but centered on 0,0 with scale -10,10
-				    	var vertexPix = arraySum(
-				    		coordsToPixelsArray(this.world.width,this.world.height,vertex[0],vertex[1]),
-				    		arrayMult(coordsToPixelsArray(this.world.width,this.world.height,0,0),-1)
-				    		);
-				    	newPolygonPix.push(vertexPix);
-					}          		
-	          		polygonsprite.body.addPolygon({},newPolygonPix);
-	          		polygonsprite.body.static = true;
-	          		polygonsprites.push(polygonsprite);
-			    }
+				        var transVertex = arraySum(vertex,move.translation);//The vertex, rotated and translated
+
+				        var vertexPix = coordsToPixelsArray(this.world.width, this.world.height, transVertex[0], transVertex[1]);
+				        graphics.lineTo(vertexPix[0],vertexPix[1]);
+				    } 
+				    //We return to the first vertex, to close the polygon
+			        var transVertex = arraySum(newPolygon[0],move.translation);//The vertex, rotated and translated
+			        var vertexPix = coordsToPixelsArray(this.world.width, this.world.height, transVertex[0], transVertex[1]);
+			        graphics.lineTo(vertexPix[0],vertexPix[1]);
+				    graphics.endFill();
+
+				    if(!isIllegalMove){
+						var polygonsprite = this.add.sprite(originPix[0],originPix[1]);
+		          		this.physics.p2.enable(polygonsprite, true);
+		          		polygonsprite.body.clearShapes();
+		          		//We add the polygon outline, in pixels counting from the origin of the sprite
+		          		var newPolygonPix = [];
+					    for (var j = 0; j < newPolygon.length; j++){
+					        var vertex = newPolygon[j];//The vertex, rotated but centered on 0,0 with scale -10,10
+					    	var vertexPix = arraySum(
+					    		coordsToPixelsArray(this.world.width,this.world.height,vertex[0],vertex[1]),
+					    		arrayMult(coordsToPixelsArray(this.world.width,this.world.height,0,0),-1)
+					    		);
+					    	newPolygonPix.push(vertexPix);
+						}          		
+		          		polygonsprite.body.addPolygon({},newPolygonPix);
+		          		polygonsprite.body.static = true;
+		          		polygonsprites.push(polygonsprite);
+				    }
+
+
+	    		}
 	    	}
 
 	    	//We also add the ball to the physics engine
