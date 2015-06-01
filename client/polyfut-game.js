@@ -286,6 +286,9 @@ Template.game.rendered = function() {
 
 		    var keyQ = this.input.keyboard.addKey(Phaser.Keyboard.Q);
 	    	keyQ.onDown.add(this.endGame, this);
+			
+		    var keyH = this.input.keyboard.addKey(Phaser.Keyboard.H);
+	    	keyH.onDown.add(this.toggleRT, this);
 
 	    	updateServerActivity(this.state.current,turn);
 
@@ -309,6 +312,9 @@ Template.game.rendered = function() {
 
 	    }, 
 
+		toggleRT : function(){
+			game.global.doRTShoot = !game.global.doRTShoot;
+		},
 	    drawShoots : function(moves, ballx, bally){
 	    	if(moves.length>4){
 	    		console.log("Error! We have more than 4 teams!");
